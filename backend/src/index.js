@@ -1,23 +1,27 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
-import { connectDB } from './db/db.js'
-import authRoutes from './routes/auth.routes.js'
-import productosRoutes from './routes/productos.routes.js'
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { connectDB } from "./db/db.js";
+import authRoutes from "./routes/auth.routes.js";
+import productosRoutes from "./routes/productos.routes.js";
 
-dotenv.config()
+dotenv.config();
 
-const app = express()
-const PORT = process.env.PORT || 3000
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'http://localhost:5173' }))
-app.use(express.json())
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://trafficandy.up.railway.app"],
+  }),
+);
+app.use(express.json());
 
-app.use('/api/auth', authRoutes)
-app.use('/api/productos', productosRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/productos", productosRoutes);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`🚀 Server corriendo en http://localhost:${PORT}`)
-  })
-})
+    console.log(`🚀 Server corriendo en http://localhost:${PORT}`);
+  });
+});
