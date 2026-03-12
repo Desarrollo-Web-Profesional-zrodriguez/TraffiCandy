@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Inicio from "./pages/Inicio";
 import Catalogo from "./pages/Catalogo";
+import ProductoDetalle from "./pages/ProductoDetalle";
 import Login from "./pages/Login";
 
 function App() {
@@ -16,6 +17,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/catalogo" element={<Catalogo />} />
+            <Route
+              path="/catalogo/:categoria/:slug"
+              element={<ProductoDetalle />}
+            />
             <Route path="/login" element={<Login />} />
           </Routes>
         </main>
