@@ -1,25 +1,27 @@
-import { useState } from 'react'
+import { useState } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const res = await fetch('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    })
+    const res = await fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    const data = await res.json()
+    const data = await res.json();
     if (data.ok) {
-      alert('Bienvenido!')
+      alert("Bienvenido!");
     } else {
-      alert(data.mensaje)
+      alert(data.mensaje);
     }
-  }
+  };
 
   return (
     <section className="flex flex-col items-center justify-center min-h-[80vh] px-4">
@@ -54,5 +56,5 @@ export default function Login() {
         </form>
       </div>
     </section>
-  )
+  );
 }
