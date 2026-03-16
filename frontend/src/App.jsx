@@ -4,6 +4,7 @@ import Inicio from "./pages/Inicio";
 import Catalogo from "./pages/Catalogo";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Login from "./pages/Login";
+import CandyMap from "./components/CandyMap/CandyMap";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
               element={<ProductoDetalle />}
             />
             <Route path="/login" element={<Login />} />
+            <Route path="/mapa" element={<CandyMap />} />
           </Routes>
         </main>
       </div>
