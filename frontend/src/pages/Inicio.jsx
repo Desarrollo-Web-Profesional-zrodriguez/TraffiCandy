@@ -1,14 +1,14 @@
-import { useState, useEffect } from "react";
+import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+const CandyMap = lazy(() => import('../components/CandyMap/CandyMap'));
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCards } from "swiper/modules";
 
 // Import Swiper styles
 import "swiper/css";
 import "swiper/css/effect-cards";
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import { useDulces } from "../hooks/useDulces";
 
 // Fallback colors for products that don't have images/colors yet
 const FALLBACK_COLORS = [
@@ -19,23 +19,8 @@ const FALLBACK_COLORS = [
 ];
 
 export default function Inicio() {
-  const [dulces, setDulces] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { dulces, loading } = useDulces();
 
-  useEffect(() => {
-    const fetchDulces = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/productos`);
-        const data = await res.json();
-        setDulces(data);
-      } catch (error) {
-        console.error("Error fetching sweets:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchDulces();
-  }, []);
   return (
     <div className="w-full flex flex-col items-center justify-start min-h-screen overflow-hidden pb-20">
       {/* ── 1. Hero Section ── */}
@@ -189,77 +174,29 @@ export default function Inicio() {
         </div>
       </section>
 
-      {/* ── 3. Mapa Interactivo Placeholder ── */}
-      <section className="w-full max-w-6xl mx-auto px-4 py-10">
-        <div className="relative w-full h-[500px] rounded-[40px] border border-white/10 bg-[#0a0f1c] overflow-hidden group shadow-2xl">
-          {/* Fondo simulando continente/mundo abstracto con blur */}
-          <div className="absolute inset-0 opacity-20 blur-sm pointer-events-none transition-opacity duration-700 group-hover:opacity-30">
-            <svg
-              className="w-full h-full text-[#3A86FF]"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-            >
-              <path
-                fill="currentColor"
-                d="M10,40 Q30,20 50,40 T90,50 L90,90 L10,90 Z"
-                opacity="0.5"
-              />
-              <path
-                fill="currentColor"
-                d="M20,60 Q40,30 70,50 T90,80 L20,80 Z"
-                opacity="0.3"
-              />
-            </svg>
-          </div>
-
-          {/* Marcadores animados (Pings) de exportación */}
-          <div className="absolute top-[30%] left-[25%]">
-            <span className="relative flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF006E] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-[#FF006E]"></span>
-            </span>
-          </div>
-          <div className="absolute top-[60%] right-[30%]">
-            <span className="relative flex h-3 w-3">
-              <span
-                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFD60A] opacity-75"
-                style={{ animationDelay: "1s" }}
-              ></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-[#FFD60A]"></span>
-            </span>
-          </div>
-          <div className="absolute top-[40%] right-[15%]">
-            <span className="relative flex h-5 w-5">
-              <span
-                className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00F5D4] opacity-75"
-                style={{ animationDelay: "0.5s" }}
-              ></span>
-              <span className="relative inline-flex rounded-full h-5 w-5 bg-[#00F5D4]"></span>
-            </span>
-          </div>
-
-          {/* Capa Glassmorphism Superior (Placeholder Message) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-black/40 backdrop-blur-[6px] transition-all duration-500 hover:backdrop-blur-[2px]">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              whileInView={{ scale: 1, opacity: 1 }}
-              viewport={{ once: true }}
-              className="bg-white/10 border border-white/20 rounded-3xl p-8 max-w-lg text-center shadow-2xl backdrop-blur-xl"
-            >
-              <div className="text-5xl mb-4">🗺️</div>
-              <h3 className="text-2xl md:text-3xl font-black text-white mb-2">
-                Rutas del Sabor
-              </h3>
-              <p className="text-white/70 mb-6">
-                Estamos rastreando cada envío de TrafiCandy por el mundo. El
-                mapa interactivo global estará disponible próximamente.
-              </p>
-              <div className="inline-block rounded-full bg-white/5 border border-white/10 px-6 py-2 text-sm font-semibold text-[#FFD60A]">
-                Próximamente 🚀
-              </div>
-            </motion.div>
-          </div>
+      {/* ── 3. Mapa Interactivo de Dulces ── */}
+      <section className="w-full py-10">
+        <div className="text-center mb-8 px-4">
+          <h2 className="text-3xl md:text-5xl font-black text-white mb-4">
+            Explora los Sabores de{" "}
+            <span className="bg-gradient-to-r from-[#FF006E] via-[#FB5607] to-[#FFD60A] bg-clip-text text-transparent">
+              México
+            </span>{" "}
+            🇲🇽
+          </h2>
+          <p className="text-white/60 max-w-xl mx-auto">
+            Haz clic en cualquier estado para descubrir sus dulces típicos y su historia.
+          </p>
         </div>
+        <Suspense
+          fallback={
+            <div className="w-full h-[80vh] flex items-center justify-center bg-gray-900/50 rounded-3xl">
+              <div className="text-white/60 text-lg animate-pulse">Cargando el Mapa… 🗺️</div>
+            </div>
+          }
+        >
+          <CandyMap />
+        </Suspense>
       </section>
     </div>
   );
