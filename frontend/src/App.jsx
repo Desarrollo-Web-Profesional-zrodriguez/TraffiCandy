@@ -5,6 +5,7 @@ import Catalogo from "./pages/Catalogo";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Login from "./pages/Login";
 import CandyMap from "./components/CandyMap/CandyMap";
+import NotFound from "./components/Error/NotFound";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             />
             <Route path="/login" element={<Login />} />
             <Route path="/mapa" element={<CandyMap />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </main>
       </div>

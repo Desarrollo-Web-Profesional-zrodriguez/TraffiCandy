@@ -25,3 +25,14 @@ connectDB().then(() => {
     console.log(`🚀 Server corriendo en http://localhost:${PORT}`);
   });
 });
+
+// 404 - Ruta no encontrada
+app.use((req, res) => {
+  res.status(404).json({ ok: false, mensaje: 'Ruta no encontrada' })
+})
+
+// 500 - Error interno del servidor
+app.use((err, req, res, next) => {
+  console.error(err.message)
+  res.status(500).json({ ok: false, mensaje: 'Error interno del servidor' })
+})
