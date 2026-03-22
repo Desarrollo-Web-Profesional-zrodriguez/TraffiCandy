@@ -3,7 +3,8 @@ import Navbar from "./components/Navbar";
 import Inicio from "./pages/Inicio";
 import Catalogo from "./pages/Catalogo";
 import ProductoDetalle from "./pages/ProductoDetalle";
-import Login from "./pages/Login";
+import Login from "./pages/Login"; // Mantenido temporalmente si hay imports huérfanos
+import Auth from "./pages/Auth";
 import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 
@@ -23,7 +24,7 @@ function App() {
               path="/catalogo/:categoria/:slug"
               element={<ProductoDetalle />}
             />
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={<Auth />} />
             <Route path="/mapa" element={<CandyMap />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
