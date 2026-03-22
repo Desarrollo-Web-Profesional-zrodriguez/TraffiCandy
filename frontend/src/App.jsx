@@ -3,8 +3,8 @@ import Navbar from "./components/Navbar";
 import Inicio from "./pages/Inicio";
 import Catalogo from "./pages/Catalogo";
 import ProductoDetalle from "./pages/ProductoDetalle";
-import Login from "./pages/Login"; // Mantenido temporalmente si hay imports huérfanos
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 
@@ -25,6 +25,7 @@ function App() {
               element={<ProductoDetalle />}
             />
             <Route path="/login" element={<Auth />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/mapa" element={<CandyMap />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

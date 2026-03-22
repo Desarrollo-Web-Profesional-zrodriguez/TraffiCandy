@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+import { authService } from "../services/auth.service";
 
 export default function Auth() {
   // 'registro' o 'login'
@@ -15,6 +14,7 @@ export default function Auth() {
   // Estados del formulario de login
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
@@ -31,12 +31,7 @@ export default function Auth() {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
-      });
-      const data = await res.json();
+      const data = await authService.login(loginEmail, loginPassword);
       
       if (data.ok) {
         alert("¡Bienvenido de vuelta!");
@@ -45,7 +40,17 @@ export default function Auth() {
         alert(data.mensaje || "Error al iniciar sesión.");
       }
     } catch (error) {
-      console.error("Error en login:", error);
+      alert("Error al conectar con el servidor.");
+    }
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await authService.forgotPassword(loginEmail);
+      alert(data.mensaje); // Mensaje devuelto por el backend
+      if (data.ok) setShowForgot(false);
+    } catch (error) {
       alert("Error al conectar con el servidor.");
     }
   };
@@ -103,45 +108,71 @@ export default function Auth() {
             <div className="w-1/2 h-full p-8">
               <div className="mb-6 text-center">
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF006E] to-[#FB5607]">
-                  Bienvenido de vuelta
+                  {showForgot ? "Recupera tu cuenta" : "Bienvenido de vuelta"}
                 </h2>
                 <p className="text-white/60 text-sm mt-1">
-                  Ingresa para acceder a tu cuenta
+                  {showForgot 
+                    ? "Te enviaremos un enlace para cambiar tu contraseña" 
+                    : "Ingresa para acceder a tu cuenta"}
                 </p>
               </div>
 
-              <form className="flex flex-col gap-4" onSubmit={handleLoginSubmit}>
-                <input
-                  type="email"
-                  placeholder="Correo electrónico"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  required
-                  className="rounded-xl bg-white/5 border border-white/20 px-4 py-3 text-white
-                             placeholder-white/50 outline-none focus:border-[#FF006E] focus:bg-white/10 transition-all"
-                />
-                <input
-                  type="password"
-                  placeholder="Contraseña"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                  className="rounded-xl bg-white/5 border border-white/20 px-4 py-3 text-white
-                             placeholder-white/50 outline-none focus:border-[#FF006E] focus:bg-white/10 transition-all"
-                />
-                
-                <div className="flex justify-end text-sm">
-                  <a href="#" className="text-white/50 hover:text-white transition-colors">¿Olvidaste tu contraseña?</a>
-                </div>
+              {showForgot ? (
+                <form className="flex flex-col gap-4" onSubmit={handleForgotSubmit}>
+                  <input
+                    type="email"
+                    placeholder="Correo electrónico"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    required
+                    className="rounded-xl bg-white/5 border border-white/20 px-4 py-3 text-white
+                               placeholder-white/50 outline-none focus:border-[#FF006E] focus:bg-white/10 transition-all"
+                  />
+                  <div className="flex justify-end text-sm">
+                    <button type="button" onClick={() => setShowForgot(false)} className="text-white/50 hover:text-white transition-colors">Volver al Login</button>
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
+                               font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    Enviar Enlace
+                  </button>
+                </form>
+              ) : (
+                <form className="flex flex-col gap-4" onSubmit={handleLoginSubmit}>
+                  <input
+                    type="email"
+                    placeholder="Correo electrónico"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    required
+                    className="rounded-xl bg-white/5 border border-white/20 px-4 py-3 text-white
+                               placeholder-white/50 outline-none focus:border-[#FF006E] focus:bg-white/10 transition-all"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Contraseña"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                    className="rounded-xl bg-white/5 border border-white/20 px-4 py-3 text-white
+                               placeholder-white/50 outline-none focus:border-[#FF006E] focus:bg-white/10 transition-all"
+                  />
+                  
+                  <div className="flex justify-end text-sm">
+                    <button type="button" onClick={() => setShowForgot(true)} className="text-white/50 hover:text-white transition-colors">¿Olvidaste tu contraseña?</button>
+                  </div>
 
-                <button
-                  type="submit"
-                  className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
-                             font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
-                >
-                  Entrar
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
+                               font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
+                  >
+                    Entrar
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* 2. Vista de Registro */}
