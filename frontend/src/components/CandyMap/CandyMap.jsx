@@ -4,7 +4,7 @@ import CandyInfoPanel from './CandyInfoPanel';
 import { useMapDulces } from '../../hooks/useDulces';
 
 // Ruta al geojson/topojson de los estados de México
-const geoUrl = '/src/assets/mexico-states.json';
+import geoData from '../../assets/mexico-states.json';
 
 const CandyMap = () => {
   const [selectedState, setSelectedState] = useState(null);
@@ -56,7 +56,7 @@ const CandyMap = () => {
         </div>
 
         <ComposableMap projection="geoMercator" projectionConfig={mapProjectionConfig} className="w-full h-full drop-shadow-2xl">
-          <Geographies geography={geoUrl}>
+          <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const isHovered = hoveredState === geo.rsmKey;
