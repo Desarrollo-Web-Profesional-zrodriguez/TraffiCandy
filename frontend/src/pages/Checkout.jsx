@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 // Reparar íconos de Leaflet en React
 import L from 'leaflet';
@@ -128,12 +129,12 @@ export default function Checkout() {
   const handlePrevStep = () => setStep(s => s - 1);
 
   const handleSimulatePayment = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setLoading(true);
 
     setTimeout(() => {
       setLoading(false);
-      alert("¡Pago simulado con éxito! Tu orden de dulces está en preparación. 🍬✈️");
+      alert("¡Orden confirmada (Pago Manual/OXXO)! Tu orden de dulces está en preparación. 🍬✈️");
       navigate("/");
     }, 2000);
   };
@@ -157,7 +158,7 @@ export default function Checkout() {
           ))}
         </div>
 
-        <form onSubmit={step === 3 ? handleSimulatePayment : (e) => e.preventDefault()} className="space-y-6">
+        <form onSubmit={step === 3 ? (e) => e.preventDefault() : (e) => e.preventDefault()} className="space-y-6">
           
           {/* STEP 1: MAP AND LOCATION */}
           {step === 1 && (
@@ -195,11 +196,18 @@ export default function Checkout() {
                   <RecenterAutomatically lat={mapPosition.lat} lng={mapPosition.lng} />
                 </MapContainer>
               </div>
-              <p className="text-white/60 text-sm text-center">🗺️ Da clic en el mapa para ajustar la ubicación exacta (Pin).</p>
+              <p className="text-white/60 text-sm text-center">🗺️ Da clic en el mapa para ajustar la ubicación. La detección puede ser inexacta.</p>
 
               <div className="bg-[#FF006E]/10 border border-[#FF006E]/30 p-4 rounded-xl">
-                <p className="text-[#FF006E] font-bold text-sm mb-1">Dirección Detectada:</p>
-                <p className="text-white">{formData.direccion || "Busca o haz clic en el mapa..."}</p>
+                <label className="text-[#FF006E] font-bold text-sm mb-2 block">Dirección Detectada (Modifícala si es necesario para mayor precisión):</label>
+                <textarea 
+                  rows="2"
+                  name="direccion"
+                  value={formData.direccion}
+                  onChange={handleChange}
+                  placeholder="Ej. Calle 123, Colonia XYZ..."
+                  className="w-full bg-white/10 border border-[#FF006E]/50 text-white rounded-lg px-3 py-2 outline-none focus:border-[#FB5607] transition-all"
+                />
               </div>
             </div>
           )}
@@ -215,7 +223,7 @@ export default function Checkout() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <label className="text-white/80 font-bold ml-1 text-sm uppercase tracking-wider">Dirección (Puedes editarla) *</label>
+                <label className="text-white/80 font-bold ml-1 text-sm uppercase tracking-wider">Dirección Confirmada *</label>
                 <textarea required rows="2" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Calle, Número..." className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:border-[#FF006E] outline-none" />
               </div>
 
@@ -267,12 +275,47 @@ export default function Checkout() {
                 <p><strong>Ubicación:</strong> {formData.ciudad}, {formData.estadoProvincia}, {formData.codigoPostal} - {formData.pais}</p>
               </div>
 
-              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-6 rounded-2xl border border-green-500/20 text-center space-y-4">
-                <h3 className="text-white font-bold text-xl">Simulación de Pago</h3>
-                <p className="text-white/70 text-sm">El envío se calculó basado en la distancia del mapa y el peso total.</p>
+              <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 p-6 rounded-2xl border border-blue-500/20 text-center space-y-4">
+                <h3 className="text-white font-bold text-xl">Pagar con PayPal Seguramente</h3>
+                <p className="text-white/70 text-sm mb-4">Usa tu cuenta de PayPal o Tarjeta de Crédito/Débito.</p>
                 
-                <button disabled={loading} type="submit" className={`w-full mt-4 rounded-xl bg-gradient-to-r from-[#10a37f] to-[#0d8266] py-4 font-black text-white text-lg transition-all ${loading ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(16,163,127,0.5)] hover:scale-[1.02] active:scale-95'}`}>
-                  {loading ? "Procesando el pago..." : "Aprobar Pago Seguro 💳✨"}
+                <div className="max-w-md mx-auto relative z-0">
+                  <PayPalScriptProvider options={{ clientId: "Af8sjYN_QIXasRJIJdofe8cuN0PL6SaXDgOd5wncvyffpdVAP9DTD4zggIo8AdGIKcV3ah0SNwM2214v", currency: "MXN" }}>
+                    <PayPalButtons 
+                      style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          purchase_units: [{
+                            amount: { value: "500.00" } // Simulación (MXN 500)
+                          }]
+                        });
+                      }}
+                      onApprove={async (data, actions) => {
+                        try {
+                          const details = await actions.order.capture();
+                          alert(`¡Pago completado con éxito por ${details.payer.name.given_name}! 🍬✈️`);
+                          navigate("/");
+                        } catch (error) {
+                          console.error("Error capturando pago:", error);
+                          alert("Hubo un error procesando el pago con PayPal.");
+                        }
+                      }}
+                    />
+                  </PayPalScriptProvider>
+                </div>
+              </div>
+
+              <div className="relative flex items-center py-5">
+                <div className="flex-grow border-t border-white/20"></div>
+                <span className="flex-shrink-0 mx-4 text-white/50 text-sm">O ALTERNATIVAS</span>
+                <div className="flex-grow border-t border-white/20"></div>
+              </div>
+
+              <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 p-6 rounded-2xl border border-green-500/20 text-center space-y-4">
+                <h3 className="text-white font-bold text-lg">Transferencia Bancaria / Pago OXXO</h3>
+                <p className="text-white/70 text-sm">Si no tienes PayPal, puedes hacer tu pago directo.</p>
+                <button disabled={loading} type="button" onClick={handleSimulatePayment} className={`w-full mt-4 rounded-xl bg-gradient-to-r from-[#10a37f] to-[#0d8266] py-4 font-black text-white text-lg transition-all ${loading ? 'opacity-50 cursor-not-allowed' : 'shadow-[0_0_20px_rgba(16,163,127,0.5)] hover:scale-[1.02] active:scale-95'}`}>
+                  {loading ? "Procesando orden..." : "Pagar por Transferencia / OXXO"}
                 </button>
               </div>
             </div>

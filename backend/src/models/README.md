@@ -34,3 +34,28 @@ Almacena el catálogo de productos. Está diseñado específicamente para la exp
 | `alergenos` | Array[String]| No | Ingredientes de cuidado (Ej. `["peanuts", "soy"]`). |
 | `disponibleParaEnvio`| Boolean| No | Define si el producto puede exportarse. Default: `true`. |
 | `timestamps` | Date | Automático| Registra la fecha de creación y última actualización. |
+
+---
+
+## 💳 Integración de Pagos (PayPal)
+
+El sistema de **Checkout** (Envíos Internacionales) simula el entorno de cobro en el *Frontend* procesando órdenes directamente. Sin embargo, en un sistema en producción seguro, la validación y captura de la orden debe validarse contra tus credenciales privadas.
+
+### Variables de Entorno Requeridas (.env)
+Para conectar tu cuenta de PayPal en el backend y verificar pagos, debes configurar tu archivo local `.env`. **¡Por reglas de seguridad rigurosas, NUNCA subas tus secretos al repositorio Git ni los guardes en código plano!**
+
+Añade las siguientes variables a tu archivo `.env` en la raíz del backend:
+
+```env
+# PayPal API Credentials
+PAYPAL_CLIENT_ID=Af8sjYN_QIXasRJIJdofe8cuN0PL6SaXDgOd5wncvyffpdVAP9DTD4zggIo8AdGIKcV3ah0SNwM2214v
+PAYPAL_SECRET=Aqui_Pega_Tu_Secret_Proporcionado
+PAYPAL_ENVIRONMENT=sandbox # Cambiar a 'live' en producción
+```
+
+*Nota para el desarrollador: Pega el `Secret` que termina en `_KJNu` que proporcionaste recientemente en tu archivo `.env` local. El Agente Inteligente no almacena esta llave en memoria para proteger tu API.*
+
+### Endpoints (Por Desarrollar)
+Para integrar el flujo completo, tu backend de Node.js deberá crear las siguientes rutas en el futuro:
+1. `POST /api/orders/create` - Para llamar a PayPal con el Secret y crear la orden asegurada.
+2. `POST /api/orders/:orderID/capture` - Para verificar la transacción real con PayPal antes de vaciar el inventario.
