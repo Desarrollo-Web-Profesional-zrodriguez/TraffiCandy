@@ -5,7 +5,6 @@ import { Resend } from 'resend'
 import Usuario from '../models/Usuario.js'
 
 const router = Router()
-const resend = new Resend(process.env.RESEND_API_KEY)
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 // POST /api/auth/login
@@ -37,7 +36,12 @@ router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   
   try {
+    // ✅ Muévelo aquí adentro
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    
     const usuario = await Usuario.findOne({ email });
+    // ... resto del código igual
+  
     if (!usuario) {
       // Por seguridad, no revelamos si existe el correo
       return res.json({ ok: true, mensaje: 'Si el correo existe, se enviará un enlace.' });
@@ -109,5 +113,26 @@ router.post('/reset-password', async (req, res) => {
     res.status(500).json({ ok: false, mensaje: 'Hubo un error al actualizar la contraseña.' });
   }
 });
+
+// POST /api/auth/register
+router.post('/register', async (req, res) => {
+  const { email, password } = req.body
+
+  try {
+    const existe = await Usuario.findOne({ email })
+    if (existe) {
+      return res.status(400).json({ ok: false, mensaje: 'El correo ya está registrado' })
+    }
+
+    const hash = await bcrypt.hash(password, 10)
+    const nuevoUsuario = await Usuario.create({ email, password: hash })
+
+    res.status(201).json({ ok: true, mensaje: 'Usuario registrado correctamente', usuario: { email: nuevoUsuario.email } })
+
+  } catch (error) {
+    console.error('Error en register:', error) // ← aquí en el backend
+    res.status(500).json({ ok: false, mensaje: 'Error al registrar usuario' })
+  }
+})
 
 export default router

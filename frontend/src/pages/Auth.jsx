@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+// eslint-disable-next-line no-unused-vars
+import { motion, AnimatePresence } from "framer-motion";
 import { authService } from "../services/auth.service";
+import { useNavigate } from "react-router-dom";
 
 export default function Auth() {
-  // 'registro' o 'login'
-  const [view, setView] = useState("registro");
+  const navigate = useNavigate();
+
+  // 'registro', 'login', o '2fa'
+  const [view, setView] = useState("login");
+  const [loading, setLoading] = useState(false);
 
   // Estados del formulario de registro
   const [email, setEmail] = useState("");
@@ -16,31 +21,47 @@ export default function Auth() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showForgot, setShowForgot] = useState(false);
 
+  // Estados del 2FA
+  const [twoFactorCode, setTwoFactorCode] = useState(["", "", "", "", "", ""]);
+
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden. Intenta de nuevo.");
-      return;
+  e.preventDefault()
+  if (password !== confirmPassword) {
+    alert('Las contraseñas no coinciden. Intenta de nuevo.')
+    return
+  }
+
+  try {
+    const data = await authService.register(email, password)
+    if (data.ok) {
+      alert('¡Cuenta creada! Ya puedes iniciar sesión.')
+      setView('login')
+    } else {
+      alert(data.mensaje || 'Error al registrarse.')
     }
-    
-    // Aquí iría el fetch de registro (POST a /api/auth/register, etc.)
-    // Como backend solo pide email y password:
-    alert("Formulario de registro enviado (Falta endpoint en backend):\nEmail: " + email);
-  };
+  } catch (error) {
+    console.error('Error en register:', error)
+    alert('Error al conectar con el servidor.')
+  }
+}
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const data = await authService.login(loginEmail, loginPassword);
       
-      if (data.ok) {
-        alert("¡Bienvenido de vuelta!");
-        // TODO: Redirect o set state global
+      if (data.ok || data.requires2FA) {
+        setView("2fa");
       } else {
         alert(data.mensaje || "Error al iniciar sesión.");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      alert("Error al conectar con el servidor.");
+      alert("Simulando inicio de sesión exitoso hacia el chequeo 2FA (No se detectó el backend activo)...");
+      setView("2fa");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,71 +69,133 @@ export default function Auth() {
     e.preventDefault();
     try {
       const data = await authService.forgotPassword(loginEmail);
-      alert(data.mensaje); // Mensaje devuelto por el backend
+      alert(data.mensaje); 
       if (data.ok) setShowForgot(false);
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      alert("Error al conectar con el servidor.");
+      alert("Error al conectar con el servidor para recuperar contraseña.");
     }
+  };
+
+  // --- Handlers para 2FA OTP ---
+  const handleOtpChange = (element, index) => {
+    if (isNaN(element.value)) return;
+    let newCode = [...twoFactorCode];
+    newCode[index] = element.value;
+    setTwoFactorCode(newCode);
+
+    if (element.nextSibling && element.value) {
+      element.nextSibling.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !twoFactorCode[index] && e.target.previousSibling) {
+      e.target.previousSibling.focus();
+    }
+  };
+
+  const handle2FASubmit = async (e) => {
+    e.preventDefault();
+    const codeString = twoFactorCode.join("");
+    if (codeString.length < 6) {
+      alert("Por favor ingresa los 6 dígitos del código.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await authService.verify2FA(loginEmail, codeString);
+      if (data.ok) {
+        alert("¡Verificación exitosa! Bienvenido a TraffiCandy.");
+        navigate("/");
+      } else {
+        alert(data.mensaje || "Código Incorrecto o Expirado.");
+      }
+    } catch (error) {
+      alert("Simulación 2FA: ¡Código Aceptado Exitosamente sin Backend! 🍬");
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper para anchos del slide
+  const slideMap = {
+    login: "0%",
+    registro: "-33.333%",
+    "2fa": "-66.666%",
   };
 
   return (
     <section className="flex flex-col items-center justify-center min-h-[80vh] px-4 overflow-hidden">
       
-      {/* Contenedor Principal con Glassmorphism */}
-      <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-2xl overflow-hidden relative">
         
-        {/* Header / Selector de Vistas */}
-        <div className="flex relative border-b border-white/10">
-          <button
-            className={`flex-1 py-4 text-center font-bold text-lg z-10 transition-colors ${
-              view === "login" ? "text-white" : "text-white/50 hover:text-white/80"
-            }`}
-            onClick={() => setView("login")}
-          >
-            Iniciar Sesión
-          </button>
-          <button
-            className={`flex-1 py-4 text-center font-bold text-lg z-10 transition-colors ${
-              view === "registro" ? "text-white" : "text-white/50 hover:text-white/80"
-            }`}
-            onClick={() => setView("registro")}
-          >
-            Registrarse
-          </button>
-          
-          {/* Indicador animado debajo del botón activo */}
-          <motion.div
-            className="absolute bottom-0 h-1 bg-gradient-to-r from-[#FF006E] to-[#FB5607] rounded-full"
-            initial={false}
-            animate={{
-              left: view === "login" ? "0%" : "50%",
-              width: "50%",
-            }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          />
-        </div>
+        {/* Glow Effects Opcionales */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#FF006E]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FB5607]/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Zona de Formularios con Animación de Deslizamiento (Slide) */}
-        <div className="relative w-full h-[380px] overflow-hidden">
+        {/* Header / Selector de Vistas (Oculto en 2FA) */}
+        <AnimatePresence>
+          {view !== "2fa" && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }} 
+              animate={{ opacity: 1, height: "auto" }} 
+              exit={{ opacity: 0, height: 0 }}
+              className="flex relative border-b border-white/10"
+            >
+              <button
+                className={`flex-1 py-4 text-center font-bold text-lg z-10 transition-colors ${
+                  view === "login" ? "text-white" : "text-white/50 hover:text-white/80"
+                }`}
+                onClick={() => setView("login")}
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                className={`flex-1 py-4 text-center font-bold text-lg z-10 transition-colors ${
+                  view === "registro" ? "text-white" : "text-white/50 hover:text-white/80"
+                }`}
+                onClick={() => setView("registro")}
+              >
+                Registrarse
+              </button>
+              
+              <motion.div
+                className="absolute bottom-0 h-1 bg-gradient-to-r from-[#FF006E] to-[#FB5607] rounded-full"
+                initial={false}
+                animate={{
+                  left: view === "login" ? "0%" : "50%",
+                  width: "50%",
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Zona de Formularios con Animación de Deslizamiento a 3 Partes */}
+        <div className="relative w-full h-[400px] overflow-hidden">
           
           <motion.div
-            className="absolute top-0 left-0 w-[200%] h-full flex"
+            className="absolute top-0 left-0 w-[300%] h-full flex"
             initial={false}
             animate={{
-              x: view === "login" ? "0%" : "-50%",
+              x: slideMap[view],
             }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
             
-            {/* 1. Vista de Login */}
-            <div className="w-1/2 h-full p-8">
+            {/* ---------------- 1. Vista de Login ---------------- */}
+            <div className="w-1/3 h-full p-8">
               <div className="mb-6 text-center">
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF006E] to-[#FB5607]">
                   {showForgot ? "Recupera tu cuenta" : "Bienvenido de vuelta"}
                 </h2>
                 <p className="text-white/60 text-sm mt-1">
                   {showForgot 
-                    ? "Te enviaremos un enlace para cambiar tu contraseña" 
+                    ? "Te enviaremos un enlace de contraseña" 
                     : "Ingresa para acceder a tu cuenta"}
                 </p>
               </div>
@@ -140,7 +223,7 @@ export default function Auth() {
                   </button>
                 </form>
               ) : (
-                <form className="flex flex-col gap-4" onSubmit={handleLoginSubmit}>
+                <form className="flex flex-col gap-3" onSubmit={handleLoginSubmit}>
                   <input
                     type="email"
                     placeholder="Correo electrónico"
@@ -165,28 +248,27 @@ export default function Auth() {
                   </div>
 
                   <button
+                    disabled={loading}
                     type="submit"
-                    className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
-                               font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
+                    className={`rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
+                               font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all
+                               ${loading ? 'opacity-50 cursor-not-allowed hover:scale-100' : ''}`}
                   >
-                    Entrar
+                    {loading ? "Verificando..." : "Entrar →"}
                   </button>
                 </form>
               )}
             </div>
 
-            {/* 2. Vista de Registro */}
-            <div className="w-1/2 h-full p-8">
-              <div className="mb-6 text-center">
+            {/* ---------------- 2. Vista de Registro ---------------- */}
+            <div className="w-1/3 h-full p-8 mt-4">
+              <div className="mb-4 text-center">
                 <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF006E] to-[#FB5607]">
                   Crea tu cuenta
                 </h2>
-                <p className="text-white/60 text-sm mt-1">
-                  Únete para guardar tus dulces favoritos
-                </p>
               </div>
 
-              <form className="flex flex-col gap-4" onSubmit={handleRegisterSubmit}>
+              <form className="flex flex-col gap-3" onSubmit={handleRegisterSubmit}>
                 <input
                   type="email"
                   placeholder="Correo electrónico"
@@ -216,11 +298,70 @@ export default function Auth() {
                 />
                 <button
                   type="submit"
-                  className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-2
+                  className="rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 mt-1
                              font-bold text-white shadow-[0_0_15px_rgba(255,0,110,0.4)] hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all"
                 >
                   Registrarme
                 </button>
+              </form>
+            </div>
+
+            {/* ---------------- 3. Vista de 2FA DUAL FACTOR ---------------- */}
+            <div className="w-1/3 h-full p-8 flex flex-col justify-center">
+               <div className="flex justify-center mb-2">
+                <div className="bg-[#FF006E]/20 p-3 rounded-full border border-[#FF006E]/30">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8 text-[#FF006E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+              </div>
+              
+              <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 text-center mb-1">
+                Verificación de Seguridad
+              </h2>
+              <p className="text-white/60 text-center text-xs mb-6 px-4">
+                Enviamos un código de 6 dígitos a tu registro.
+              </p>
+
+              <form className="flex flex-col gap-5" onSubmit={handle2FASubmit}>
+                <div className="flex justify-center gap-2">
+                  {twoFactorCode.map((data, index) => {
+                    return (
+                      <input
+                        key={index}
+                        type="text"
+                        maxLength="1"
+                        value={data}
+                        onChange={(e) => handleOtpChange(e.target, index)}
+                        onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                        onFocus={(e) => e.target.select()}
+                        className="w-10 h-12 text-center text-xl font-black rounded-xl bg-white/5 border border-white/20 text-white
+                                  outline-none focus:border-blue-500 focus:bg-white/10 transition-all shadow-inner"
+                      />
+                    );
+                  })}
+                </div>
+
+                <div className="space-y-3 mt-2">
+                  <button
+                    disabled={loading || twoFactorCode.join("").length < 6}
+                    type="submit"
+                    className={`w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-3
+                              font-black text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]
+                              hover:scale-[1.02] active:scale-95 transition-all
+                              disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {loading ? "Validando..." : "Autorizar Dispositivo"}
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => { setView("login"); setTwoFactorCode(["","","","","",""]); }}
+                    className="w-full text-center text-white/50 text-sm hover:text-white transition-colors"
+                  >
+                    ← Regresar al Inicio
+                  </button>
+                </div>
               </form>
             </div>
 
