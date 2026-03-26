@@ -3,8 +3,8 @@ import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import CandyInfoPanel from './CandyInfoPanel';
 import { useMapDulces } from '../../hooks/useDulces';
 
-// Ruta al geojson/topojson de los estados de México
-import geoData from '../../assets/mexico-states.json';
+// Ruta al geojson/topojson de los estados de México (usando ?url para Vite)
+import geoUrl from '../../assets/mexico-states.json?url';
 
 const CandyMap = () => {
   const [selectedState, setSelectedState] = useState(null);
@@ -56,7 +56,7 @@ const CandyMap = () => {
         </div>
 
         <ComposableMap projection="geoMercator" projectionConfig={mapProjectionConfig} className="w-full h-full drop-shadow-2xl">
-          <Geographies geography={geoData}>
+          <Geographies geography={geoUrl}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const isHovered = hoveredState === geo.rsmKey;
