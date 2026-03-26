@@ -77,3 +77,21 @@ PAYPAL_ENVIRONMENT=sandbox # Cambiar a 'live' en producción
 Para integrar el flujo completo, tu backend de Node.js deberá crear las siguientes rutas en el futuro:
 1. `POST /api/orders/create` - Para llamar a PayPal con el Secret y crear la orden asegurada.
 2. `POST /api/orders/:orderID/capture` - Para verificar la transacción real con PayPal antes de vaciar el inventario.
+
+---
+
+## 🔐 Autenticación y Doble Factor (2FA)
+
+El formulario de Login soporta una segunda capa de seguridad (2FA) requerida por el FrontEnd. Para que el ciclo esté completo y enlazado con la base de datos de usuarios (`twoFactorCode`, `twoFactorExpire`), el backend necesita:
+
+### 1. `POST /api/auth/login`
+Debe ajustarse para **no** devolver inmediatamente el Token JWT si el usuario tiene el 2FA activado (o si es el comportamiento global esperado de los administradores).
+- Deberá comparar las credenciales. Si son válidas, debe generar un PIN de 6 dígitos aleatorio, guardarlo en `twoFactorCode` en MongoDB, y establecer su expiración en `twoFactorExpire` (ej. 10 mins).
+- El endpoint deberá responder: `{ ok: true, requires2FA: true, mensaje: "Código enviado" }`.
+- Se aconseja integrar SendGrid, Resend (que ya configuraste) o NodeMailer para mandar el correo electrónico al administrador con este PIN en ese mismo instante.
+
+### 2. `POST /api/auth/verify-2fa`
+Este nuevo endpoint recibirá el { `email`, `code` } que el usuario teclea en los nuevos cuadros de TraffiCandy.
+- Debe buscar al usuario por `email`.
+- Validar que el `code` coincida con `twoFactorCode` y que la fecha de hoy sea menor a `twoFactorExpire`.
+- Si todo es correcto, limpiar esos dos campos y ahora sí devolver el Response final: `{ ok: true, token: "JWT_TOKEN", user: {...} }` para dar acceso verdadero.

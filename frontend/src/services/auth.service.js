@@ -24,6 +24,25 @@ export const authService = {
   },
 
   /**
+   * Verificar código 2FA de un usuario.
+   * @param {string} email
+   * @param {string} code
+   */
+  verify2FA: async (email, code) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/verify-2fa`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code }),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Objeto error devuelto por el navegador en verify2FA:", error);
+      throw error;
+    }
+  },
+
+  /**
    * Solicitar correo de restablecimiento de contraseña.
    * @param {string} email
    */
