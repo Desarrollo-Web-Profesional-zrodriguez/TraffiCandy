@@ -1,4 +1,5 @@
 import { useState } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { authService } from "../services/auth.service";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,9 @@ export default function Auth() {
       alert("Las contraseñas no coinciden. Intenta de nuevo.");
       return;
     }
+    
+    // Aquí iría el fetch de registro (POST a /api/auth/register, etc.)
+    // Como backend solo pide email y password:
     alert("Formulario de registro enviado (Falta endpoint en backend):\nEmail: " + email);
   };
 
@@ -43,6 +47,7 @@ export default function Auth() {
       } else {
         alert(data.mensaje || "Error al iniciar sesión.");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       alert("Simulando inicio de sesión exitoso hacia el chequeo 2FA (No se detectó el backend activo)...");
       setView("2fa");
@@ -57,6 +62,7 @@ export default function Auth() {
       const data = await authService.forgotPassword(loginEmail);
       alert(data.mensaje); 
       if (data.ok) setShowForgot(false);
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       alert("Error al conectar con el servidor para recuperar contraseña.");
     }
