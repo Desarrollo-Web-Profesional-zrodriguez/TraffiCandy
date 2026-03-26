@@ -1,4 +1,5 @@
 import { useState } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { authService } from "../services/auth.service";
 
@@ -17,16 +18,25 @@ export default function Auth() {
   const [showForgot, setShowForgot] = useState(false);
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden. Intenta de nuevo.");
-      return;
+  e.preventDefault()
+  if (password !== confirmPassword) {
+    alert('Las contraseñas no coinciden. Intenta de nuevo.')
+    return
+  }
+
+  try {
+    const data = await authService.register(email, password)
+    if (data.ok) {
+      alert('¡Cuenta creada! Ya puedes iniciar sesión.')
+      setView('login')
+    } else {
+      alert(data.mensaje || 'Error al registrarse.')
     }
-    
-    // Aquí iría el fetch de registro (POST a /api/auth/register, etc.)
-    // Como backend solo pide email y password:
-    alert("Formulario de registro enviado (Falta endpoint en backend):\nEmail: " + email);
-  };
+  } catch (error) {
+    console.error('Error en register:', error)
+    alert('Error al conectar con el servidor.')
+  }
+}
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -39,6 +49,7 @@ export default function Auth() {
       } else {
         alert(data.mensaje || "Error al iniciar sesión.");
       }
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       alert("Error al conectar con el servidor.");
     }
@@ -50,6 +61,7 @@ export default function Auth() {
       const data = await authService.forgotPassword(loginEmail);
       alert(data.mensaje); // Mensaje devuelto por el backend
       if (data.ok) setShowForgot(false);
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       alert("Error al conectar con el servidor.");
     }

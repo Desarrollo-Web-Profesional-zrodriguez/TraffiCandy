@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { dulcesService } from "../../../services/dulces.service";
+import { dulcesService } from "../../services/dulces.service";
 
 export default function CandyForm() {
   const { id } = useParams();
