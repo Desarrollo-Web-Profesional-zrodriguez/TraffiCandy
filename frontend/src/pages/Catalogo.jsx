@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Breadcrumb from '../components/Breadcrumb'
 
-const API_URL = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 const CATEGORIAS_CONFIG = {
   picante:     { titulo: 'Dulces Picantes',   emoji: '🌶️', color: 'from-[#FF006E] to-[#FB5607]' },
@@ -36,10 +36,20 @@ export default function Catalogo() {
     </div>
   )
 
+  // Fallback para mapear dulces viejos de MongoDB al nuevo esquema
+  const normalizeCategoria = (cat) => {
+    switch (cat) {
+      case 'botanas': return 'otro';
+      case 'dulces_confitados': return 'dulce';
+      case 'dulces_tipicos': return 'tradicional';
+      default: return cat;
+    }
+  };
+
   const categorias = Object.entries(CATEGORIAS_CONFIG).map(([slug, config]) => ({
     slug,
     ...config,
-    productos: productos.filter(p => p.categoria === slug),
+    productos: productos.filter(p => normalizeCategoria(p.categoria) === slug),
   }))
 
   return (

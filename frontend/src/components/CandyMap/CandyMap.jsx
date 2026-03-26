@@ -9,7 +9,7 @@ import geoUrl from '../../assets/mexico-states.json?url';
 const CandyMap = () => {
   const [selectedState, setSelectedState] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
-  const { mapData: dbSweetsData, loading } = useMapDulces();
+  const { mapData: dbSweetsData } = useMapDulces();
 
   const handleStateClick = (geo) => {
     const stateName = geo.properties.state_name;
