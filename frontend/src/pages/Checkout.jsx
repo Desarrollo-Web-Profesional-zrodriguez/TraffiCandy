@@ -60,6 +60,31 @@ export default function Checkout() {
     codigoPostal: ""
   });
 
+  // Autodetectar la ubicación actual al cargar si se da permiso
+  useEffect(() => {
+    handleGetCurrentLocation();
+  }, []); // Se ejecuta una sola vez al montar
+
+  const handleGetCurrentLocation = () => {
+    if ("geolocation" in navigator) {
+      setIsSearching(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setMapPosition({ lat, lng });
+          fetchAddressFromCoords(lat, lng);
+          setIsSearching(false);
+        },
+        (error) => {
+          console.warn("Ubicación denegada o no disponible:", error);
+          setIsSearching(false);
+        },
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      );
+    }
+  };
+
   // Búsqueda por texto (Geocoding con Nominatim)
   const handleSearchAddress = async (e) => {
     e.preventDefault();
@@ -165,22 +190,33 @@ export default function Checkout() {
             <div className="space-y-6 animate-fade-in">
               <h2 className="text-xl font-bold text-white mb-4">📍 Paso 1: Ubicación Exacta</h2>
               
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={searchQuery} 
-                  onChange={(e) => setSearchQuery(e.target.value)} 
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearchAddress(e)}
-                  placeholder="Ej. Zócalo, CDMX" 
-                  className="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:border-[#FF006E] outline-none transition-all placeholder-white/30" 
-                />
+              <div className="flex flex-col md:flex-row gap-2">
+                <div className="flex flex-1 gap-2">
+                  <input 
+                    type="text" 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)} 
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearchAddress(e)}
+                    placeholder="Ej. Zócalo, CDMX" 
+                    className="flex-1 bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:border-[#FF006E] outline-none transition-all placeholder-white/30" 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleSearchAddress}
+                    disabled={isSearching}
+                    className="bg-[#FB5607] hover:bg-[#ff6b25] text-white px-6 rounded-xl font-bold transition-all disabled:opacity-50"
+                  >
+                    {isSearching ? '...' : 'Buscar'}
+                  </button>
+                </div>
                 <button 
                   type="button" 
-                  onClick={handleSearchAddress}
+                  onClick={handleGetCurrentLocation}
                   disabled={isSearching}
-                  className="bg-[#FB5607] hover:bg-[#ff6b25] text-white px-6 rounded-xl font-bold transition-all disabled:opacity-50"
+                  className="bg-white/10 border border-white/20 hover:bg-white/20 text-white px-4 py-3 rounded-xl font-bold transition-all disabled:opacity-50 whitespace-nowrap"
+                  title="Usar mi ubicación actual"
                 >
-                  {isSearching ? '...' : 'Buscar'}
+                  📍 Autodetectar
                 </button>
               </div>
 
