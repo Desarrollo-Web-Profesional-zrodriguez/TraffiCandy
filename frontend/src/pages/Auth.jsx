@@ -25,16 +25,25 @@ export default function Auth() {
   const [twoFactorCode, setTwoFactorCode] = useState(["", "", "", "", "", ""]);
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden. Intenta de nuevo.");
-      return;
+  e.preventDefault()
+  if (password !== confirmPassword) {
+    alert('Las contraseñas no coinciden. Intenta de nuevo.')
+    return
+  }
+
+  try {
+    const data = await authService.register(email, password)
+    if (data.ok) {
+      alert('¡Cuenta creada! Ya puedes iniciar sesión.')
+      setView('login')
+    } else {
+      alert(data.mensaje || 'Error al registrarse.')
     }
-    
-    // Aquí iría el fetch de registro (POST a /api/auth/register, etc.)
-    // Como backend solo pide email y password:
-    alert("Formulario de registro enviado (Falta endpoint en backend):\nEmail: " + email);
-  };
+  } catch (error) {
+    console.error('Error en register:', error)
+    alert('Error al conectar con el servidor.')
+  }
+}
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
