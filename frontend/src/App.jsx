@@ -5,6 +5,7 @@ import Catalogo from "./pages/Catalogo";
 import ProductoDetalle from "./pages/ProductoDetalle";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import CandyForm from "./pages/Admin/CandyForm";
 import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 
@@ -26,6 +27,11 @@ function App() {
             />
             <Route path="/login" element={<Auth />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
+            
+            {/* Rutas para Administración de Dulces */}
+            <Route path="/admin/dulce/nuevo" element={<CandyForm />} />
+            <Route path="/admin/dulce/editar/:id" element={<CandyForm />} />
+
             <Route path="/mapa" element={<CandyMap />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
