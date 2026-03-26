@@ -5,6 +5,7 @@ const NAV_LINKS = [
   { to: "/", label: "Inicio" },
   { to: "/catalogo", label: "Catálogo" },
   { to: "/login", label: "Login" },
+  { to: "/checkout", label: "Checkout 🛒" },
 ];
 
 export default function Navbar() {
