@@ -11,10 +11,10 @@ Maneja la autenticación, la separación de roles (Vendedor/Cliente) y los campo
 | `email` | String | Sí | Correo electrónico (Único, usado para login). |
 | `password` | String | Sí | Contraseña encriptada (Hash con bcrypt). |
 | `rol` | String | No | Enum: `['cliente', 'vendedor']`. Default: `'cliente'`. |
-| `twoFactorCode` | String | No | Código temporal (OTP) para Autenticación Fuerte. |
-| `twoFactorExpire` | Date | No | Fecha de caducidad del código 2FA. |
-| `resetPasswordToken`| String | No | Token único para recuperar acceso. |
-| `resetPasswordExpire`| Date | No | Fecha de caducidad del token de recuperación. |
+| `twoFactorCode` | String | No | Pin OTP numérico de 6 dígitos auto-generado para el Login Reforzado. |
+| `twoFactorExpire` | Date | No | Límite de validez [ej. 10 minutos] para que el administrador inserte el código en el front. |
+| `resetPasswordToken`| String | No | Almacena el token actual si se solicitó un "Olvidé mi contraseña". |
+| `resetPasswordExpire`| Date | No | Cuándo expira ese token para evitar ataques. |
 | `timestamps` | Date | Automático| Registra `createdAt` y `updatedAt` automáticamente. |
 
 ### Colección: `Dulces`
