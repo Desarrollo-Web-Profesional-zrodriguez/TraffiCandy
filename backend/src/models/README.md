@@ -35,6 +35,24 @@ Almacena el catálogo de productos. Está diseñado específicamente para la exp
 | `disponibleParaEnvio`| Boolean| No | Define si el producto puede exportarse. Default: `true`. |
 | `timestamps` | Date | Automático| Registra la fecha de creación y última actualización. |
 
+***
+
+## 🍭 Generación y Edición de Dulces (Requerimientos Backend)
+
+El formulario de creación (`CandyForm.jsx`) ha sido actualizado con características avanzadas que requieren soporte en el lado del servidor para un flujo de producción óptimo:
+
+### 1. Auto-Traducción de Descripciones
+En el frontend, el botón "Traducir Inteligente" usa temporalmente una API gratuita abierta (MyMemory) o una simulación. Sin embargo, para producción:
+- El backend debería tener una ruta como `POST /api/translate`.
+- Esta ruta debe recibir el payload `{ text: "Dulce picante...", lang: "en" }`.
+- El controlador del backend interactuará con APIs robustas y seguras (como Google Cloud Translation o DeepL) utilizando credenciales protegidas en tu `.env`. Luego devolverá el texto al frontend.
+
+### 2. Múltiples Imágenes (Array de Strings)
+El esquema de Mongoose actual (`imagenes: [String]`) ya soporta múltiples URLs formidables. El frontend ya envía un *Array de Strings* estructurado en lugar de un único string.
+- Asegúrate de que el validador del backend (`req.body.imagenes`) itere y acepte el array sin sobrescribencias.
+- Si en el futuro se desea implementar carga física de archivos en lugar de URLs, el backend requerirá Middleware de subida (Ej. `Multer`) conectado a un bucket (Ej. `AWS S3` o `Cloudinary`), retornando el array de URLs seguras hacia la base de datos.
+
+
 ---
 
 ## 💳 Integración de Pagos (PayPal)
