@@ -31,15 +31,17 @@ export default function ProductoDetalle() {
     </div>
   )
 
-  const saboresActivos = Object.entries(producto.sabores).filter(([, v]) => v).map(([k]) => k)
+  const saboresActivos = producto.flavorTags || []
 
-  const SABOR_COLORS = {
-    dulce:     'from-[#FFD60A] to-[#FB5607]',
-    picoso:    'from-[#FF006E] to-[#FB5607]',
-    salado:    'from-[#3A86FF] to-[#8338EC]',
-    acido:     'from-[#8338EC] to-[#FF006E]',
-    agridulce: 'from-[#FB5607] to-[#FFD60A]',
+  const CATEGORIAS_CONFIG = {
+    picante:     { color: 'from-[#FF006E] to-[#FB5607]' },
+    dulce:       { color: 'from-[#FFD60A] to-[#FB5607]' },
+    agridulce:   { color: 'from-[#8338EC] to-[#3A86FF]' },
+    tradicional: { color: 'from-[#06D6A0] to-[#118AB2]' },
+    otro:        { color: 'from-[#FF006E] to-[#8338EC]' },
   }
+  
+  const themeColor = CATEGORIAS_CONFIG[producto.categoria]?.color || 'from-gray-600 to-gray-800'
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
@@ -47,16 +49,15 @@ export default function ProductoDetalle() {
 
       <article className="mt-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className={`bg-gradient-to-r ${producto.color} p-10 flex flex-col items-center`}>
+        <div className={`bg-gradient-to-r ${themeColor} p-10 flex flex-col items-center`}>
           <span className="text-8xl drop-shadow-lg mb-3" role="img" aria-label={producto.nombre}>
-            {producto.emoji}
+            {producto.emoji || '🍬'}
           </span>
           <h1 className="text-3xl md:text-4xl font-black text-white text-center drop-shadow">
             {producto.nombre}
           </h1>
-          <span className="mt-2 text-white/80 text-sm font-medium">{producto.marca}</span>
           <span className="mt-3 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1 text-sm font-semibold text-white">
-            ${producto.precio.toFixed(2)} USD
+            ${(producto.precioBase || 0).toFixed(2)} USD
           </span>
         </div>
 
@@ -64,7 +65,7 @@ export default function ProductoDetalle() {
         <div className="p-8 grid md:grid-cols-2 gap-8">
           <div>
             <h2 className="text-lg font-bold text-[#FFD60A] mb-2">Descripción</h2>
-            <p className="text-white/80 leading-relaxed">{producto.descripcion}</p>
+            <p className="text-white/80 leading-relaxed">{producto.descripcion_es}</p>
 
             {/* Sabores */}
             {saboresActivos.length > 0 && (
@@ -72,7 +73,7 @@ export default function ProductoDetalle() {
                 <h2 className="text-lg font-bold text-[#FFD60A] mb-2">Sabores</h2>
                 <div className="flex flex-wrap gap-2">
                   {saboresActivos.map(s => (
-                    <span key={s} className={`rounded-full bg-gradient-to-r ${SABOR_COLORS[s]} px-3 py-1 text-xs font-bold text-white capitalize`}>
+                    <span key={s} className={`rounded-full bg-white/20 border border-white/10 px-3 py-1 text-xs font-bold text-white capitalize`}>
                       {s}
                     </span>
                   ))}
@@ -83,8 +84,9 @@ export default function ProductoDetalle() {
 
           <div className="flex flex-col gap-4">
             {[
-              { label: '⚖️ Peso',       value: `${producto.peso}g` },
-              { label: '📍 Origen',     value: producto.origen },
+              { label: '⚖️ Peso',       value: `${producto.pesoGramos}g` },
+              { label: '📍 Origen',     value: producto.estadoOrigen },
+              { label: '🔥 Picor',      value: `${producto.nivelPicor}/5` },
               { label: '🏷️ Categoría', value: producto.categoria.replace('_', ' ') },
               { label: '📦 Stock',      value: `${producto.stock} unidades` },
             ].map(({ label, value }) => (
@@ -101,7 +103,7 @@ export default function ProductoDetalle() {
           <Link to="/catalogo" className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white">
             ← Volver al Catálogo
           </Link>
-          <button type="button" className={`rounded-full bg-gradient-to-r ${producto.color} px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95`}>
+          <button type="button" className={`rounded-full bg-gradient-to-r ${themeColor} px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95`}>
             Agregar al pedido 🛒
           </button>
         </div>

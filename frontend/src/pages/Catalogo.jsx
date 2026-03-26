@@ -5,9 +5,11 @@ import Breadcrumb from '../components/Breadcrumb'
 const API_URL = 'http://localhost:3000/api'
 
 const CATEGORIAS_CONFIG = {
-  dulces_confitados: { titulo: 'Dulces Confitados', emoji: '🍬', color: 'from-[#FF006E] to-[#FB5607]' },
-  botanas:           { titulo: 'Botanas',            emoji: '🌀', color: 'from-[#8338EC] to-[#3A86FF]' },
-  dulces_tipicos:    { titulo: 'Dulces Típicos',     emoji: '🍮', color: 'from-[#FFD60A] to-[#FB5607]' },
+  picante:     { titulo: 'Dulces Picantes',   emoji: '🌶️', color: 'from-[#FF006E] to-[#FB5607]' },
+  dulce:       { titulo: 'Dulces Clásicos',   emoji: '🍬', color: 'from-[#FFD60A] to-[#FB5607]' },
+  agridulce:   { titulo: 'Agridulces',        emoji: '🌀', color: 'from-[#8338EC] to-[#3A86FF]' },
+  tradicional: { titulo: 'Dulces Típicos',    emoji: '🍮', color: 'from-[#06D6A0] to-[#118AB2]' },
+  otro:        { titulo: 'Otras Variedades',  emoji: '🍭', color: 'from-[#FF006E] to-[#8338EC]' },
 }
 
 export default function Catalogo() {
@@ -83,8 +85,8 @@ export default function Catalogo() {
                                  transition-all duration-300 hover:scale-[1.03] hover:border-white/25
                                  hover:shadow-2xl hover:shadow-[#FF006E]/10 active:scale-[0.98]"
                     >
-                      <div className={`bg-gradient-to-br ${p.color} p-6 flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-110`}>
-                        <span role="img" aria-label={p.nombre}>{p.emoji}</span>
+                      <div className={`bg-gradient-to-br ${cat.color} p-6 flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-110`}>
+                        <span role="img" aria-label={p.nombre}>{p.emoji || '🍬'}</span>
                       </div>
                       <div className="p-4 flex items-center justify-between">
                         <div>
@@ -93,8 +95,8 @@ export default function Catalogo() {
                           </p>
                           <p className="text-white/50 text-xs mt-0.5">Ver detalle →</p>
                         </div>
-                        <span className={`rounded-full bg-gradient-to-r ${p.color} px-3 py-1 text-xs font-bold text-white shadow-sm`}>
-                          ${p.precio.toFixed(2)}
+                        <span className={`rounded-full bg-gradient-to-r ${cat.color} px-3 py-1 text-xs font-bold text-white shadow-sm`}>
+                          ${(p.precioBase || 0).toFixed(2)}
                         </span>
                       </div>
                     </Link>
