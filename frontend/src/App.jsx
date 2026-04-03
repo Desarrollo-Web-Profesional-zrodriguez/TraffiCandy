@@ -11,6 +11,8 @@ import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import ErrorBoundary from "./components/Error/ErrorBoundary";
+
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -39,8 +41,9 @@ function App() {
 
         {/* Contenido de las páginas (con padding para no quedar bajo el Navbar fijo) */}
         <main className="pt-16">
-          <Routes>
-            {/* ── Rutas Públicas ─────────────────────────────────────── */}
+          <ErrorBoundary>
+            <Routes>
+              {/* ── Rutas Públicas ─────────────────────────────────────── */}
             <Route path="/" element={<Inicio />} />
             <Route path="/catalogo" element={<Catalogo />} />
             <Route path="/catalogo/:categoria/:slug" element={<ProductoDetalle />} />
@@ -69,7 +72,8 @@ function App() {
 
             {/* ── 404 ────────────────────────────────────────────────── */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </ErrorBoundary>
         </main>
       </div>
     </BrowserRouter>

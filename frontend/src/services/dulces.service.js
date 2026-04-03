@@ -15,7 +15,8 @@ export const dulcesService = {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      const result = await response.json();
+      return result.data || [];
     } catch (error) {
       console.error("Error en dulcesService.getAll:", error);
       throw error;
@@ -33,7 +34,8 @@ export const dulcesService = {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      return await response.json();
+      const result = await response.json();
+      return result.data || result;
     } catch (error) {
       console.error(`Error en dulcesService.getById(${id}):`, error);
       throw error;
@@ -47,15 +49,19 @@ export const dulcesService = {
    */
   createDulce: async (dulceData) => {
     try {
+      const token = localStorage.getItem("tc_token");
       const response = await fetch(`${API_URL}/api/productos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}` // Futura impl
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify(dulceData),
       });
-      if (!response.ok) throw new Error('Error al crear el dulce');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.mensaje || 'Error al crear el dulce');
+      }
       return await response.json();
     } catch (error) {
       console.error("Error en createDulce:", error);
@@ -71,14 +77,19 @@ export const dulcesService = {
    */
   updateDulce: async (id, dulceData) => {
     try {
+      const token = localStorage.getItem("tc_token");
       const response = await fetch(`${API_URL}/api/productos/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify(dulceData),
       });
-      if (!response.ok) throw new Error('Error al actualizar el dulce');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.mensaje || 'Error al actualizar el dulce');
+      }
       return await response.json();
     } catch (error) {
       console.error(`Error en updateDulce(${id}):`, error);

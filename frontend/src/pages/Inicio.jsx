@@ -70,7 +70,7 @@ export default function Inicio() {
         >
           Bienvenido a{" "}
           <span className="bg-gradient-to-r from-[#FF006E] via-[#FB5607] to-[#FFD60A] bg-clip-text text-transparent animate-gradient-x">
-            TrafiCandy
+            TraffiCandy
           </span>
         </motion.h1>
 

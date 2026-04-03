@@ -9,9 +9,10 @@ const router = Router()
 // ──────────────────────────────────────────
 // GET /api/productos  — Pública
 // ──────────────────────────────────────────
+// ──────────────────────────────────────────
 router.get('/', async (req, res) => {
   try {
-    const productos = await Producto.find({ disponible: true })
+    const productos = await Producto.find({ disponibleParaEnvio: true })
     return ok(res, productos, 'Productos obtenidos')
   } catch (error) {
     return serverError(res, 'Error al obtener productos', error)
@@ -19,11 +20,20 @@ router.get('/', async (req, res) => {
 })
 
 // ──────────────────────────────────────────
-// GET /api/productos/:slug  — Pública
 // ──────────────────────────────────────────
-router.get('/:slug', async (req, res) => {
+// GET /api/productos/:identifier  — Pública (Id o Slug)
+// ──────────────────────────────────────────
+router.get('/:identifier', async (req, res) => {
   try {
-    const producto = await Producto.findOne({ slug: req.params.slug })
+    const { identifier } = req.params;
+    let producto;
+    // Si parece un Object_Id de mongo
+    if (identifier.match(/^[0-9a-fA-F]{24}$/)) {
+      producto = await Producto.findById(identifier);
+    } else {
+      producto = await Producto.findOne({ slug: identifier });
+    }
+    
     if (!producto) return notFound(res, 'Producto no encontrado')
     return ok(res, producto, 'Producto obtenido')
   } catch (error) {

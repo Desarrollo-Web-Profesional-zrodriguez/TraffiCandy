@@ -11,6 +11,7 @@ const CATEGORIAS_CONFIG = {
   tradicional: { titulo: 'Dulces Típicos',    emoji: '🍮', color: 'from-[#06D6A0] to-[#118AB2]' },
   otro:        { titulo: 'Otras Variedades',  emoji: '🍭', color: 'from-[#FF006E] to-[#8338EC]' },
 }
+import { dulcesService } from '../services/dulces.service'
 
 export default function Catalogo() {
   const [productos, setProductos] = useState([])
@@ -18,8 +19,7 @@ export default function Catalogo() {
   const [error, setError]         = useState(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/productos`)
-      .then(res => res.json())
+    dulcesService.getAll()
       .then(data => { setProductos(data); setLoading(false) })
       .catch(() => { setError('Error al cargar productos'); setLoading(false) })
   }, [])
