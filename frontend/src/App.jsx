@@ -10,6 +10,7 @@ import CandyForm from "./pages/Admin/CandyForm";
 import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminDulces from "./pages/Admin/AdminDulces";
 
 import ErrorBoundary from "./components/Error/ErrorBoundary";
 
@@ -54,6 +55,14 @@ function App() {
 
             {/* ── Rutas Protegidas — Solo Vendedor ───────────────────── */}
             <Route
+              path="/admin/dulces"
+              element={
+                <ProtectedRoute roles={["vendedor"]}>
+                  <AdminDulces />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/dulce/nuevo"
               element={
                 <ProtectedRoute roles={["vendedor"]}>
@@ -62,7 +71,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/dulce/editar/:id"
+              path="/admin/dulces/editar/:id"
               element={
                 <ProtectedRoute roles={["vendedor"]}>
                   <CandyForm />
