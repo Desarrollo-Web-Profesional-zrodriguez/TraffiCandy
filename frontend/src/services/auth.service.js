@@ -180,4 +180,20 @@ export const authService = {
       throw error;
     }
   },
+
+  /**
+   * Activar/Desactivar 2FA del usuario actual
+   */
+  toggle2FA: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/toggle-2fa`, {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en toggle2FA:", error);
+      throw error;
+    }
+  }
 };

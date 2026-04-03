@@ -18,6 +18,7 @@ const usuarioSchema = new mongoose.Schema({
   },
   resetPasswordToken: { type: String },
   resetPasswordExpires: { type: Date },
+  twoFactorEnabled: { type: Boolean, default: false },
   twoFactorCode: { type: String },
   twoFactorExpire: { type: Date }
 }, {

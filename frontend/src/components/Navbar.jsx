@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { authService } from "../services/auth.service";
 
 // Badge de rol con colores diferenciados
 const ROL_BADGE = {
@@ -27,6 +28,30 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { isLoggedIn, isVendedor, usuario, logout } = useAuth();
+  const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+
+  // Cargar estado inicial de 2FA
+  useEffect(() => {
+    if (isLoggedIn) {
+      authService.me().then((res) => {
+        if (res.ok && res.data?.usuario) {
+          setIs2FAEnabled(res.data.usuario.twoFactorEnabled);
+        }
+      }).catch(console.error);
+    }
+  }, [isLoggedIn]);
+
+  const handleToggle2FA = async () => {
+    try {
+      const res = await authService.toggle2FA();
+      if (res.ok) {
+        setIs2FAEnabled(res.data.twoFactorEnabled);
+        alert(res.mensaje);
+      }
+    } catch (err) {
+      alert("Error al cambiar 2FA");
+    }
+  };
 
   /* ── Detectar scroll para activar glassmorphism ── */
   useEffect(() => {
@@ -147,6 +172,21 @@ export default function Navbar() {
                   </p>
                 </div>
 
+                {/* Botón 2FA Toggle */}
+                <button
+                  onClick={handleToggle2FA}
+                  title={is2FAEnabled ? "Desactivar 2FA" : "Activar 2FA"}
+                  className={`flex items-center justify-center h-8 w-8 rounded-full border transition-all duration-300 hover:scale-105 active:scale-95 ${
+                    is2FAEnabled 
+                      ? "border-green-500/40 bg-green-500/20 text-green-400 hover:bg-green-500/30" 
+                      : "border-white/20 bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </button>
+
                 {/* Botón Logout */}
                 <button
                   id="btn-logout-desktop"
@@ -213,18 +253,33 @@ export default function Navbar() {
             {isLoggedIn ? (
               <div className="flex flex-col gap-2">
                 {/* Info de usuario móvil */}
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 relative">
                   {badge && (
                     <span className={`px-2 py-0.5 rounded-full border text-xs font-bold ${badge.cls}`}>
                       {badge.icon} {badge.label}
                     </span>
                   )}
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="text-white text-sm font-bold truncate">
                       {usuario?.nombre || usuario?.email?.split("@")[0]}
                     </p>
                     <p className="text-white/40 text-xs truncate">{usuario?.email}</p>
                   </div>
+                  
+                  {/* Botón 2FA Móvil */}
+                  <button
+                    onClick={handleToggle2FA}
+                    title={is2FAEnabled ? "Desactivar 2FA" : "Activar 2FA"}
+                    className={`flex items-center justify-center p-2 rounded-lg border transition-all duration-300 ${
+                      is2FAEnabled 
+                        ? "border-green-500/40 bg-green-500/20 text-green-400" 
+                        : "border-white/20 bg-white/5 text-white/50"
+                    }`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </button>
                 </div>
                 {/* Logout móvil */}
                 <button

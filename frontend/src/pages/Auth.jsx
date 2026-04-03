@@ -64,7 +64,7 @@ export default function Auth() {
         const userRol = data.data.usuario?.rol;
         // Vendedor → panel admin; Comprador → inicio
         navigate(userRol === "vendedor" ? "/admin/dulce/nuevo" : "/");
-      } else if (data.requires2FA) {
+      } else if (data.data?.requires2FA) {
         setView("2fa");
       } else {
         alert(data.mensaje || "Credenciales incorrectas.");
