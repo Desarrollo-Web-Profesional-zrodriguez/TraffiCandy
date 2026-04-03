@@ -1,6 +1,6 @@
 ## 🗄️ Arquitectura de Base de Datos (MongoDB)
 
-El proyecto utiliza una base de datos NoSQL (MongoDB) por su flexibilidad y compatibilidad nativa con JSON en el stack MERN. A continuación se detallan los esquemas principales que manejan la lógica de negocio de **TrafiCandy**.
+El proyecto utiliza una base de datos NoSQL (MongoDB) por su flexibilidad y compatibilidad nativa con JSON en el stack MERN. A continuación se detallan los esquemas principales que manejan la lógica de negocio de **TraffiCandy**.
 
 ### Colección: `Usuarios`
 Maneja la autenticación, la separación de roles (Vendedor/Cliente) y los campos necesarios para la seguridad avanzada (2FA y recuperación de contraseñas).
