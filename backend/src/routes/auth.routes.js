@@ -2,28 +2,19 @@ import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
+import speakeasy from 'speakeasy'
+import qrcode from 'qrcode'
 import { enviarCorreo2FA, enviarCorreoRecuperacion } from '../utils/mailer.js'
 import Usuario from '../models/Usuario.js'
 import { verificarToken } from '../middlewares/auth.middleware.js'
-import {
-  ok,
-  created,
-  badRequest,
-  unauthorized,
-  conflict,
-  serverError
-} from '../utils/httpResponse.js'
+import { ok, created, badRequest, unauthorized, conflict, serverError } from '../utils/httpResponse.js'
 
 const router = Router()
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
-/**
- * Genera un JWT firmado con { id, email, rol, twoFactorEnabled }.
- * Expira en 7 días.
- */
 const generarToken = (usuario) =>
   jwt.sign(
-    { id: usuario._id, email: usuario.email, rol: usuario.rol, twoFactorEnabled: usuario.twoFactorEnabled },
+    { id: usuario._id, email: usuario.email, rol: usuario.rol },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -34,17 +25,12 @@ const generarToken = (usuario) =>
 router.post('/register', async (req, res) => {
   const { nombre = '', email, password, rol = 'comprador' } = req.body
 
-  // Validar que el rol sea válido
   const rolesPermitidos = ['comprador', 'vendedor']
-  if (!rolesPermitidos.includes(rol)) {
-    return badRequest(res, `Rol inválido. Usa: ${rolesPermitidos.join(' o ')}`)
-  }
+  if (!rolesPermitidos.includes(rol)) return badRequest(res, `Rol inválido. Usa: ${rolesPermitidos.join(' o ')}`)
 
   try {
     const existe = await Usuario.findOne({ email })
-    if (existe) {
-      return conflict(res, 'El correo ya está registrado')
-    }
+    if (existe) return conflict(res, 'El correo ya está registrado')
 
     const hash = await bcrypt.hash(password, 10)
     const nuevoUsuario = await Usuario.create({ nombre, email, password: hash, rol })
@@ -65,49 +51,71 @@ router.post('/login', async (req, res) => {
 
   try {
     const usuario = await Usuario.findOne({ email })
-    if (!usuario) {
-      return unauthorized(res, 'Credenciales incorrectas')
-    }
+    if (!usuario) return unauthorized(res, 'Credenciales incorrectas')
 
     const passwordOk = await bcrypt.compare(password, usuario.password)
-    if (!passwordOk) {
-      return unauthorized(res, 'Credenciales incorrectas')
-    }
+    if (!passwordOk) return unauthorized(res, 'Credenciales incorrectas')
 
-    // Verificar si el 2FA está activo
-    if (usuario.twoFactorEnabled) {
-      // Generar código de 6 dígitos
-      const codigo = Math.floor(100000 + Math.random() * 900000).toString()
-      
-      usuario.twoFactorCode = codigo
-      usuario.twoFactorExpire = Date.now() + 10 * 60 * 1000 // 10 minutos
-      await usuario.save()
+    const methods = []
+    if (usuario.twoFactorApp) methods.push('app')
+    if (usuario.twoFactorEmail) methods.push('email')
 
-      // Enviar por correo
-      try {
-        await enviarCorreo2FA(usuario.email, codigo)
-      } catch (err) {
-        console.error('Error enviando email de 2FA:', err)
-        return serverError(res, 'Error enviando código de seguridad')
+    if (methods.length > 0) {
+      // Prioridad a 'app', no mandamos correo de inmediato si tiene app
+      if (usuario.twoFactorApp) {
+        return ok(res, { requires2FA: 'app', methods }, 'Requiere código de App Autenticadora')
       }
 
-      return ok(res, { requires2FA: true }, 'Código 2FA enviado al correo')
+      // Solo tiene correo
+      if (usuario.twoFactorEmail) {
+        const codigo = Math.floor(100000 + Math.random() * 900000).toString()
+        usuario.twoFactorCode = codigo
+        usuario.twoFactorExpire = Date.now() + 10 * 60 * 1000 // 10 mins
+        await usuario.save()
+
+        try {
+          await enviarCorreo2FA(usuario.email, codigo)
+        } catch (err) {
+          console.error(err)
+          return serverError(res, 'Error enviando código de seguridad al correo')
+        }
+        return ok(res, { requires2FA: 'email', methods }, 'Código 2FA enviado al correo')
+      }
     }
 
-    // 2FA no está activo -> devolver JWT directamente
+    // Sin 2FA
     const token = generarToken(usuario)
-
     return ok(res, {
       token,
-      usuario: {
-        id: usuario._id,
-        nombre: usuario.nombre,
-        email: usuario.email,
-        rol: usuario.rol
-      }
+      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
     }, 'Login exitoso')
   } catch (error) {
     return serverError(res, 'Error en el servidor', error)
+  }
+})
+
+// ──────────────────────────────────────────
+// POST /api/auth/send-2fa-email
+// Envía un código si el usuario tiene twoFactorEmail encendido (para fallback del App)
+// ──────────────────────────────────────────
+router.post('/send-2fa-email', async (req, res) => {
+  const { email, password } = req.body
+  try {
+    const usuario = await Usuario.findOne({ email })
+    if (!usuario || !usuario.twoFactorEmail) return badRequest(res, 'No disponible')
+
+    const passwordOk = await bcrypt.compare(password, usuario.password)
+    if (!passwordOk) return unauthorized(res, 'Credenciales incorrectas')
+
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString()
+    usuario.twoFactorCode = codigo
+    usuario.twoFactorExpire = Date.now() + 10 * 60 * 1000
+    await usuario.save()
+
+    await enviarCorreo2FA(usuario.email, codigo)
+    return ok(res, null, 'Código 2FA enviado al correo')
+  } catch (error) {
+    return serverError(res, 'Error enviando correo', error)
   }
 })
 
@@ -119,29 +127,40 @@ router.post('/verify-2fa', async (req, res) => {
 
   try {
     const usuario = await Usuario.findOne({ email })
-    if (!usuario) {
-      return badRequest(res, 'Usuario no encontrado')
+    if (!usuario) return badRequest(res, 'Usuario no encontrado')
+
+    let isValid = false
+
+    // 1. Checar TOTP App
+    if (usuario.twoFactorApp && usuario.twoFactorAppSecret) {
+      const isValidTotp = speakeasy.totp.verify({
+        secret: usuario.twoFactorAppSecret,
+        encoding: 'base32',
+        token: code,
+        window: 2
+      })
+      if (isValidTotp) {
+        isValid = true
+      }
     }
 
-    if (!usuario.twoFactorCode || usuario.twoFactorCode !== code || usuario.twoFactorExpire < Date.now()) {
-      return unauthorized(res, 'Código incorrecto o ha expirado')
+    // 2. Checar Email
+    if (!isValid && usuario.twoFactorEmail && usuario.twoFactorCode) {
+      if (usuario.twoFactorCode === code && usuario.twoFactorExpire > Date.now()) {
+        isValid = true
+        usuario.twoFactorCode = undefined
+        usuario.twoFactorExpire = undefined
+      }
     }
 
-    // Código válido, limpiar campos 2FA
-    usuario.twoFactorCode = undefined
-    usuario.twoFactorExpire = undefined
+    if (!isValid) return unauthorized(res, 'Código incorrecto o expirado')
+
     await usuario.save()
-
     const token = generarToken(usuario)
 
     return ok(res, {
       token,
-      usuario: {
-        id: usuario._id,
-        nombre: usuario.nombre,
-        email: usuario.email,
-        rol: usuario.rol
-      }
+      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
     }, 'Verificación 2FA exitosa')
   } catch (error) {
     return serverError(res, 'Error al verificar 2FA', error)
@@ -149,32 +168,96 @@ router.post('/verify-2fa', async (req, res) => {
 })
 
 // ──────────────────────────────────────────
-// POST /api/auth/toggle-2fa
+// GET /api/auth/setup-app-2fa
 // ──────────────────────────────────────────
-router.post('/toggle-2fa', verificarToken, async (req, res) => {
+router.get('/setup-app-2fa', verificarToken, async (req, res) => {
   try {
     const usuario = await Usuario.findById(req.usuario.id)
     if (!usuario) return badRequest(res, 'Usuario no encontrado')
 
-    usuario.twoFactorEnabled = !usuario.twoFactorEnabled
-    await usuario.save()
+    const secretObj = speakeasy.generateSecret({ name: `TraffiCandy (${usuario.email})` })
+    usuario.twoFactorAppSecret = secretObj.base32
+    await usuario.save() // Guarda el secreto antes de habilitarlo
 
-    return ok(res, { twoFactorEnabled: usuario.twoFactorEnabled }, `2FA ${usuario.twoFactorEnabled ? 'activado' : 'desactivado'}`)
+    const otpauth = secretObj.otpauth_url
+    const qrImage = await qrcode.toDataURL(otpauth)
+
+    return ok(res, { secret: secretObj.base32, qrImage }, 'Datos para vincular app generados')
   } catch (error) {
-    return serverError(res, 'Error al cambiar estado de 2FA', error)
+    return serverError(res, 'Error al generar setup', error)
   }
 })
 
 // ──────────────────────────────────────────
-// GET /api/auth/me  (ruta protegida)
+// POST /api/auth/confirm-app-2fa
+// ──────────────────────────────────────────
+router.post('/confirm-app-2fa', verificarToken, async (req, res) => {
+  const { code } = req.body
+  try {
+    const usuario = await Usuario.findById(req.usuario.id)
+    if (!usuario || !usuario.twoFactorAppSecret) return badRequest(res, 'Falta generar setup')
+
+    const isValidTotp = speakeasy.totp.verify({
+      secret: usuario.twoFactorAppSecret,
+      encoding: 'base32',
+      token: code,
+      window: 2
+    })
+    
+    if (!isValidTotp) {
+      return unauthorized(res, 'El código no coincide con la aplicación')
+    }
+
+    usuario.twoFactorApp = true
+    await usuario.save()
+    return ok(res, { twoFactorApp: true }, 'Autenticador activado con éxito')
+  } catch (error) {
+    return serverError(res, 'Error al confirmar app', error)
+  }
+})
+
+// ──────────────────────────────────────────
+// POST /api/auth/disable-app-2fa
+// ──────────────────────────────────────────
+router.post('/disable-app-2fa', verificarToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id)
+    if (!usuario) return badRequest(res, 'Usuario no encontrado')
+
+    usuario.twoFactorApp = false
+    usuario.twoFactorAppSecret = undefined
+    await usuario.save()
+
+    return ok(res, { twoFactorApp: false }, 'Autenticador desactivado')
+  } catch (error) {
+    return serverError(res, 'Error al desactivar app', error)
+  }
+})
+
+// ──────────────────────────────────────────
+// POST /api/auth/toggle-email-2fa
+// ──────────────────────────────────────────
+router.post('/toggle-email-2fa', verificarToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id)
+    if (!usuario) return badRequest(res, 'Usuario no encontrado')
+
+    usuario.twoFactorEmail = !usuario.twoFactorEmail
+    await usuario.save()
+
+    return ok(res, { twoFactorEmail: usuario.twoFactorEmail }, `2FA por correo ${usuario.twoFactorEmail ? 'activado' : 'desactivado'}`)
+  } catch (error) {
+    return serverError(res, 'Error al cambiar estado de correo 2FA', error)
+  }
+})
+
+// ──────────────────────────────────────────
+// GET /api/auth/me
 // ──────────────────────────────────────────
 router.get('/me', verificarToken, async (req, res) => {
   try {
-    const usuario = await Usuario.findById(req.usuario.id).select('-password -resetPasswordToken -resetPasswordExpires -twoFactorCode -twoFactorExpire')
-    if (!usuario) {
-      return badRequest(res, 'Usuario no encontrado')
-    }
-
+    const usuario = await Usuario.findById(req.usuario.id).select('-password -resetPasswordToken -resetPasswordExpires -twoFactorCode -twoFactorExpire -twoFactorAppSecret')
+    if (!usuario) return badRequest(res, 'Usuario no encontrado')
     return ok(res, { usuario }, 'Datos del usuario autenticado')
   } catch (error) {
     return serverError(res, 'Error al obtener datos del usuario', error)
@@ -182,59 +265,41 @@ router.get('/me', verificarToken, async (req, res) => {
 })
 
 // ──────────────────────────────────────────
-// POST /api/auth/forgot-password
+// Recuperación de Contraseña (sin cambios lógicos)
 // ──────────────────────────────────────────
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body
-
   try {
     const usuario = await Usuario.findOne({ email })
-
-    if (!usuario) {
-      // Por seguridad no revelamos si el correo existe
-      return ok(res, null, 'Si el correo existe, se enviará un enlace.')
-    }
+    if (!usuario) return ok(res, null, 'Si el correo existe, se enviará un enlace.')
 
     const resetToken = crypto.randomBytes(32).toString('hex')
     usuario.resetPasswordToken = resetToken
-    usuario.resetPasswordExpires = Date.now() + 3600000 // 1 hora
+    usuario.resetPasswordExpires = Date.now() + 3600000
     await usuario.save()
 
     const resetUrl = `${FRONTEND_URL}/reset-password/${resetToken}`
-
     await enviarCorreoRecuperacion(usuario.email, resetUrl)
-
     return ok(res, null, 'Si el correo existe, se enviará un enlace de recuperación.')
   } catch (error) {
-    return serverError(res, 'Hubo un error al procesar la solicitud', error)
+    return serverError(res, 'Error al procesar solicitud', error)
   }
 })
 
-// ──────────────────────────────────────────
-// POST /api/auth/reset-password
-// ──────────────────────────────────────────
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body
-
   try {
-    const usuario = await Usuario.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
-    })
-
-    if (!usuario) {
-      return badRequest(res, 'El enlace de recuperación es inválido o ha expirado.')
-    }
+    const usuario = await Usuario.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } })
+    if (!usuario) return badRequest(res, 'Enlace de recuperación inválido o expirado.')
 
     const salt = await bcrypt.genSalt(10)
     usuario.password = await bcrypt.hash(newPassword, salt)
     usuario.resetPasswordToken = undefined
     usuario.resetPasswordExpires = undefined
     await usuario.save()
-
-    return ok(res, null, 'La contraseña ha sido actualizada con éxito. Ya puedes iniciar sesión.')
+    return ok(res, null, 'Contraseña actualizada con éxito.')
   } catch (error) {
-    return serverError(res, 'Hubo un error al actualizar la contraseña.', error)
+    return serverError(res, 'Error al actualizar contraseña.', error)
   }
 })
 

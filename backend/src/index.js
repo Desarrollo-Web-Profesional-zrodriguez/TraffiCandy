@@ -7,6 +7,7 @@ import productosRoutes from './routes/productos.routes.js'
 import { notFound as notFoundResponse, serverError } from './utils/httpResponse.js'
 
 dotenv.config()
+// Reloading dotenv
 
 const app = express()
 const PORT = process.env.PORT || 3000
