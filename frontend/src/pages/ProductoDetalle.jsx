@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Breadcrumb from '../components/Breadcrumb'
+import AddToCartModal from '../components/AddToCartModal'
 
 const API_URL = 'http://localhost:3000/api'
 
@@ -9,6 +10,7 @@ export default function ProductoDetalle() {
   const [producto, setProducto] = useState(null)
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
   fetch(`${API_URL}/productos/${slug}`)
@@ -68,7 +70,7 @@ export default function ProductoDetalle() {
               {producto.nombre}
             </h1>
             <span className="mt-3 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1 text-sm font-semibold text-white">
-              ${(producto.precioBase || 0).toFixed(2)} USD
+              ${(producto.precioBase || 0).toFixed(2)} MXN
             </span>
           </div>
         </div>
@@ -115,9 +117,15 @@ export default function ProductoDetalle() {
           <Link to="/catalogo" className="rounded-full border border-white/20 px-6 py-2.5 text-sm font-semibold text-white/80 transition-all duration-200 hover:bg-white/10 hover:text-white">
             ← Volver al Catálogo
           </Link>
-          <button type="button" className={`rounded-full bg-gradient-to-r ${themeColor} px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95`}>
+          <button
+            type="button"
+            onClick={() => setShowModal(true)}
+            className={`rounded-full bg-gradient-to-r ${themeColor} px-6 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95`}
+          >
             Agregar al pedido 🛒
           </button>
+
+          {showModal && <AddToCartModal producto={producto} onClose={() => setShowModal(false)} />}
         </div>
       </article>
     </div>
