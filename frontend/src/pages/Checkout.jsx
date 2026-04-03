@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
+import toast from "react-hot-toast";
 
 // Reparar íconos de Leaflet en React
 import L from 'leaflet';
@@ -100,11 +101,11 @@ export default function Checkout() {
         setMapPosition(newPos);
         fetchAddressFromCoords(newPos.lat, newPos.lng);
       } else {
-        alert("No se encontró la dirección. Intenta de nuevo.");
+        toast.error("No se encontró la dirección. Intenta de nuevo.");
       }
     } catch (err) {
       console.error(err);
-      alert("Error buscando la dirección.");
+      toast.error("Error buscando la dirección.");
     } finally {
       setIsSearching(false);
     }
@@ -141,11 +142,11 @@ export default function Checkout() {
 
   const handleNextStep = () => {
     if (step === 1 && !formData.direccion) {
-      alert("Por favor selecciona una ubicación en el mapa o busca una dirección.");
+      toast.error("Por favor selecciona una ubicación en el mapa o busca una dirección.");
       return;
     }
     if (step === 2 && (!formData.nombreReceptor || !formData.ciudad)) {
-      alert("Por favor llena los campos obligatorios.");
+      toast.error("Por favor llena los campos obligatorios.");
       return;
     }
     setStep(s => s + 1);
@@ -159,7 +160,7 @@ export default function Checkout() {
 
     setTimeout(() => {
       setLoading(false);
-      alert("¡Orden confirmada (Pago Manual/OXXO)! Tu orden de dulces está en preparación. 🍬✈️");
+      toast.success("¡Orden confirmada (Pago Manual/OXXO)! Tu orden de dulces está en preparación. 🍬✈️");
       navigate("/");
     }, 2000);
   };
@@ -329,11 +330,11 @@ export default function Checkout() {
                       onApprove={async (data, actions) => {
                         try {
                           const details = await actions.order.capture();
-                          alert(`¡Pago completado con éxito por ${details.payer.name.given_name}! 🍬✈️`);
+                          toast.success(`¡Pago completado con éxito por ${details.payer.name.given_name}! 🍬✈️`);
                           navigate("/");
                         } catch (error) {
                           console.error("Error capturando pago:", error);
-                          alert("Hubo un error procesando el pago con PayPal.");
+                          toast.error("Hubo un error procesando el pago con PayPal.");
                         }
                       }}
                     />

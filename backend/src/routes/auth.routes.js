@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import jwt from 'jsonwebtoken'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
+import rateLimit from 'express-rate-limit'
 import { enviarCorreo2FA, enviarCorreoRecuperacion } from '../utils/mailer.js'
 import Usuario from '../models/Usuario.js'
 import { verificarToken } from '../middlewares/auth.middleware.js'
@@ -11,10 +12,26 @@ import { ok, created, badRequest, unauthorized, conflict, serverError } from '..
 
 const router = Router()
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
+const COUNT_LIMITER = process.env.COUNT_LIMITER
+
+// ──────────────────────────────────────────
+// Limitadores de Velocidad (Fuerza Bruta)
+// ──────────────────────────────────────────
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: COUNT_LIMITER, // 5 requests
+  message: { ok: false, mensaje: 'Demasiados intentos fallidos. Por favor, intenta de nuevo en 15 minutos.' }
+})
+
+const sendEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3, 
+  message: { ok: false, mensaje: 'Límite de envío de correos excedido. Espera un momento.' }
+})
 
 const generarToken = (usuario) =>
   jwt.sign(
-    { id: usuario._id, email: usuario.email, rol: usuario.rol },
+    { id: usuario._id, email: usuario.email, rol: usuario.rol, tokenVersion: usuario.tokenVersion },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -46,7 +63,7 @@ router.post('/register', async (req, res) => {
 // ──────────────────────────────────────────
 // POST /api/auth/login
 // ──────────────────────────────────────────
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body
 
   try {
@@ -98,7 +115,7 @@ router.post('/login', async (req, res) => {
 // POST /api/auth/send-2fa-email
 // Envía un código si el usuario tiene twoFactorEmail encendido (para fallback del App)
 // ──────────────────────────────────────────
-router.post('/send-2fa-email', async (req, res) => {
+router.post('/send-2fa-email', sendEmailLimiter, async (req, res) => {
   const { email, password } = req.body
   try {
     const usuario = await Usuario.findOne({ email })
@@ -122,7 +139,7 @@ router.post('/send-2fa-email', async (req, res) => {
 // ──────────────────────────────────────────
 // POST /api/auth/verify-2fa
 // ──────────────────────────────────────────
-router.post('/verify-2fa', async (req, res) => {
+router.post('/verify-2fa', loginLimiter, async (req, res) => {
   const { email, code } = req.body
 
   try {
@@ -131,16 +148,22 @@ router.post('/verify-2fa', async (req, res) => {
 
     let isValid = false
 
-    // 1. Checar TOTP App
-    if (usuario.twoFactorApp && usuario.twoFactorAppSecret) {
-      const isValidTotp = speakeasy.totp.verify({
-        secret: usuario.twoFactorAppSecret,
-        encoding: 'base32',
-        token: code,
-        window: 2
-      })
-      if (isValidTotp) {
+    // 1. Checar TOTP App o Backup Codes
+    if (usuario.twoFactorAppSecret) {
+      if (code && usuario.backupCodes && usuario.backupCodes.includes(code.toUpperCase().trim())) {
         isValid = true
+        // Quemar el código de respaldo usado
+        usuario.backupCodes = usuario.backupCodes.filter(c => c !== code.toUpperCase().trim())
+      } else {
+        const isValidTotp = speakeasy.totp.verify({
+          secret: usuario.twoFactorAppSecret,
+          encoding: 'base32',
+          token: code,
+          window: 2
+        })
+        if (isValidTotp) {
+          isValid = true
+        }
       }
     }
 
@@ -177,12 +200,17 @@ router.get('/setup-app-2fa', verificarToken, async (req, res) => {
 
     const secretObj = speakeasy.generateSecret({ name: `TraffiCandy (${usuario.email})` })
     usuario.twoFactorAppSecret = secretObj.base32
+    
+    // Generar códigos de respaldo
+    const backupCodes = Array.from({ length: 5 }, () => crypto.randomBytes(3).toString('hex').toUpperCase())
+    usuario.backupCodes = backupCodes
+    
     await usuario.save() // Guarda el secreto antes de habilitarlo
 
     const otpauth = secretObj.otpauth_url
     const qrImage = await qrcode.toDataURL(otpauth)
 
-    return ok(res, { secret: secretObj.base32, qrImage }, 'Datos para vincular app generados')
+    return ok(res, { secret: secretObj.base32, qrImage, backupCodes }, 'Datos para vincular app generados')
   } catch (error) {
     return serverError(res, 'Error al generar setup', error)
   }
@@ -267,7 +295,7 @@ router.get('/me', verificarToken, async (req, res) => {
 // ──────────────────────────────────────────
 // Recuperación de Contraseña (sin cambios lógicos)
 // ──────────────────────────────────────────
-router.post('/forgot-password', async (req, res) => {
+router.post('/forgot-password', sendEmailLimiter, async (req, res) => {
   const { email } = req.body
   try {
     const usuario = await Usuario.findOne({ email })
@@ -286,7 +314,7 @@ router.post('/forgot-password', async (req, res) => {
   }
 })
 
-router.post('/reset-password', async (req, res) => {
+router.post('/reset-password', loginLimiter, async (req, res) => {
   const { token, newPassword } = req.body
   try {
     const usuario = await Usuario.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } })
@@ -294,8 +322,19 @@ router.post('/reset-password', async (req, res) => {
 
     const salt = await bcrypt.genSalt(10)
     usuario.password = await bcrypt.hash(newPassword, salt)
+    
+    // Limpiar tokens de recuperación
     usuario.resetPasswordToken = undefined
     usuario.resetPasswordExpires = undefined
+    
+    // Revocar sesiones masivas a través del TokenVersion
+    usuario.tokenVersion = (usuario.tokenVersion || 0) + 1
+    
+    // Por seguridad extrema, apagar métodos 2FA al restablecer credenciales críticas
+    usuario.twoFactorEmail = false
+    usuario.twoFactorApp = false
+    usuario.twoFactorAppSecret = undefined
+
     await usuario.save()
     return ok(res, null, 'Contraseña actualizada con éxito.')
   } catch (error) {

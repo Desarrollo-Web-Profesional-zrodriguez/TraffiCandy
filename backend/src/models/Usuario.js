@@ -22,7 +22,9 @@ const usuarioSchema = new mongoose.Schema({
   twoFactorApp: { type: Boolean, default: false },
   twoFactorAppSecret: { type: String },
   twoFactorCode: { type: String },
-  twoFactorExpire: { type: Date }
+  twoFactorExpire: { type: Date },
+  tokenVersion: { type: Number, default: 0 },
+  backupCodes: { type: [String], default: [] }
 }, {
   timestamps: true
 })

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { authService } from "../services/auth.service";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -36,20 +37,20 @@ export default function Auth() {
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden. Intenta de nuevo.");
+      toast.error("Las contraseñas no coinciden. Intenta de nuevo.");
       return;
     }
     try {
       const data = await authService.register(nombre, email, password, "comprador");
       if (data.ok) {
-        alert(`¡Cuenta creada! Ya puedes iniciar sesión.`);
+        toast.success(`¡Cuenta creada! Ya puedes iniciar sesión.`);
         setView("login");
       } else {
-        alert(data.mensaje || "Error al registrarse.");
+        toast.error(data.mensaje || "Error al registrarse.");
       }
     } catch (error) {
       console.error("Error en register:", error);
-      alert("Error al conectar con el servidor.");
+      toast.error("Error al conectar con el servidor.");
     }
   };
 
@@ -71,11 +72,11 @@ export default function Auth() {
         setAvailable2FAMethods(data.data.methods || []);
         setView("2fa");
       } else {
-        alert(data.mensaje || "Credenciales incorrectas.");
+        toast.error(data.mensaje || "Credenciales incorrectas.");
       }
     // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      alert("Error al conectar con el servidor.");
+      toast.error("Error al conectar con el servidor.");
     } finally {
       setLoading(false);
     }
@@ -83,21 +84,38 @@ export default function Auth() {
 
   const handleForgotSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const data = await authService.forgotPassword(loginEmail);
-      alert(data.mensaje);
-      if (data.ok) setShowForgot(false);
-    // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      alert("Error al conectar con el servidor para recuperar contraseña.");
-    }
+    setLoading(true);
+    
+    // Envolver en Promesa Custom para obligar el Reject si ok: false
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const data = await authService.forgotPassword(loginEmail);
+        if (data.ok) {
+          setShowForgot(false);
+          resolve(data.mensaje);
+        } else {
+          reject(new Error(data.mensaje || "No pudimos enviar el enlace."));
+        }
+      } catch (error) {
+        reject(new Error("Error al conectar con el servidor."));
+      }
+    });
+
+    toast.promise(promise, {
+      loading: 'Enviando correo de recuperación...',
+      success: (msg) => msg,
+      error: (err) => err.message
+    }).finally(() => {
+      setLoading(false);
+    });
   };
 
   // ── Handlers para 2FA OTP ──
   const handleOtpChange = (element, index) => {
-    if (isNaN(element.value)) return;
+    // Permitir letras mayúsculas y números para Códigos de Respaldo y TOTP
+    if (!/^[A-Z0-9]?$/i.test(element.value)) return;
     const newCode = [...twoFactorCode];
-    newCode[index] = element.value;
+    newCode[index] = element.value.toUpperCase();
     setTwoFactorCode(newCode);
     if (element.nextSibling && element.value) element.nextSibling.focus();
   };
@@ -112,38 +130,49 @@ export default function Auth() {
     e.preventDefault();
     const codeString = twoFactorCode.join("");
     if (codeString.length < 6) {
-      alert("Por favor ingresa los 6 dígitos del código.");
+      toast.error("Por favor ingresa los 6 dígitos del código.");
       return;
     }
     setLoading(true);
     try {
       const data = await authService.verify2FA(loginEmail, codeString);
       if (data.ok && data.data?.token) {
+        toast.success("Verificación exitosa.");
         login(data.data.token);
         navigate("/");
       } else {
-        alert(data.mensaje || "Código Incorrecto o Expirado.");
+        toast.error(data.mensaje || "Código Incorrecto o Expirado.");
       }
     } catch (error) {
       console.error("Error en 2FA:", error);
-      alert("Error al conectar con el servidor.");
+      toast.error("Error al conectar con el servidor.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleSendEmailFallback = async () => {
-    try {
-      const res = await authService.sendEmail2FA(loginEmail, loginPassword);
-      if (res.ok) {
-        setRequired2FAMethod('email');
-        alert("Código enviado a tu correo exitosamente.");
-      } else {
-        alert(res.mensaje || "Error al solicitar el código por correo.");
+    setLoading(true);
+    
+    const promise = new Promise(async (resolve, reject) => {
+      try {
+        const res = await authService.sendEmail2FA(loginEmail, loginPassword);
+        if (res.ok) {
+          setRequired2FAMethod('email');
+          resolve("Código enviado a tu correo exitosamente.");
+        } else {
+          reject(new Error(res.mensaje || "Error al solicitar el código por correo."));
+        }
+      } catch (error) {
+        reject(new Error("Error al contactar al servidor para enviar el correo."));
       }
-    } catch (error) {
-      alert("Error al contactar al servidor para enviar el correo.");
-    }
+    });
+
+    toast.promise(promise, {
+      loading: 'Enviando código a tu correo...', // Simulación de algo tardado
+      success: (msg) => msg,
+      error: (err) => err.message
+    }).finally(() => setLoading(false));
   };
 
   // Helper para anchos del slide
@@ -227,7 +256,9 @@ export default function Auth() {
                       Volver al Login
                     </button>
                   </div>
-                  <button type="submit" className={btnPrimary}>Enviar Enlace</button>
+                  <button disabled={loading} type="submit" className={`${btnPrimary} ${loading ? "opacity-50 cursor-not-allowed hover:scale-100" : ""}`}>
+                    {loading ? "Enviando..." : "Enviar Enlace"}
+                  </button>
                 </form>
               ) : (
                 <form className="flex flex-col gap-3" onSubmit={handleLoginSubmit}>
@@ -287,7 +318,7 @@ export default function Auth() {
               </h2>
               <p className="text-white/60 text-center text-xs mb-6 px-1">
                 {required2FAMethod === 'app' 
-                  ? "Abre tu aplicación autenticadora y coloca el código temporal."
+                  ? "Ingresa el código de 6 dígitos de tu App o un Código de Respaldo."
                   : "Enviamos un código de 6 dígitos a tu bandeja de correo."}
               </p>
 
@@ -315,7 +346,7 @@ export default function Auth() {
                   
                   <div className="flex flex-col items-center gap-2 mt-4">
                     {available2FAMethods.includes("email") && required2FAMethod === 'app' && (
-                      <button type="button" onClick={handleSendEmailFallback} className="text-sm font-semibold text-[#FFD60A] hover:text-[#FB5607] transition-colors underline">
+                      <button disabled={loading} type="button" onClick={handleSendEmailFallback} className="text-sm font-semibold text-[#FFD60A] hover:text-[#FB5607] transition-colors underline disabled:opacity-50 disabled:cursor-wait">
                         ¿No tienes la app? Usa tu correo
                       </button>
                     )}
