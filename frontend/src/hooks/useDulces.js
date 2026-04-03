@@ -59,9 +59,9 @@ export const useMapDulces = () => {
         groupedData[dulce.estadoOrigen].push({
           stateName: dulce.estadoOrigen,
           candyName: dulce.nombre,
-          history: dulce.descripcion_es,
-          preparation: `Nivel de picor: ${dulce.nivelPicor}/5. Alérgenos: ${dulce.alergenos.length ? dulce.alergenos.join(', ') : 'Ninguno'}.`,
-          image: dulce.imagenes?.length ? dulce.imagenes[0] : "https://images.unsplash.com/photo-1550143891-fc5ebc0f70ee?auto=format&fit=crop&q=80&w=600",
+          history: dulce.descripcion_es || "Información histórica no disponible aún.",
+          preparation: `Nivel de picor: ${dulce.nivelPicor || 0}/5. Alérgenos: ${(dulce.alergenos && dulce.alergenos.length) ? dulce.alergenos.join(', ') : 'Ninguno'}.`,
+          image: (dulce.imagenes && dulce.imagenes.length) ? dulce.imagenes[0] : "https://images.unsplash.com/photo-1550143891-fc5ebc0f70ee?auto=format&fit=crop&q=80&w=600",
           emoji: dulce.emoji,
           precio: dulce.precioBase
         });
