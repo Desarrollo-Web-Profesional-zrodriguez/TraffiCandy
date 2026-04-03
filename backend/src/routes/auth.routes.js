@@ -40,6 +40,7 @@ const generarToken = (usuario) =>
 // POST /api/auth/register
 // ──────────────────────────────────────────
 router.post('/register', async (req, res) => {
+  console.log('📩 Register hit:', req.body)
   const { nombre = '', email, password, rol = 'comprador' } = req.body
 
   const rolesPermitidos = ['comprador', 'vendedor']

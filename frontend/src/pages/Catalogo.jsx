@@ -95,9 +95,19 @@ export default function Catalogo() {
                                  transition-all duration-300 hover:scale-[1.03] hover:border-white/25
                                  hover:shadow-2xl hover:shadow-[#FF006E]/10 active:scale-[0.98]"
                     >
-                      <div className={`bg-gradient-to-br ${cat.color} p-6 flex items-center justify-center text-5xl transition-transform duration-300 group-hover:scale-110`}>
-                        <span role="img" aria-label={p.nombre}>{p.emoji || '🍬'}</span>
-                      </div>
+                      <div className={`bg-gradient-to-br ${cat.color} h-48 flex items-center justify-center overflow-hidden`}>
+                      {p.imagenes && p.imagenes.length > 0 ? (
+                        <img
+                          src={p.imagenes[0]}
+                          alt={p.nombre}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      ) : (
+                        <span className="text-5xl transition-transform duration-300 group-hover:scale-110" role="img" aria-label={p.nombre}>
+                          {p.emoji || '🍬'}
+                        </span>
+                      )}
+                    </div>
                       <div className="p-4 flex items-center justify-between">
                         <div>
                           <p className="font-bold text-white text-sm group-hover:text-[#FFD60A] transition-colors duration-200">
