@@ -233,8 +233,8 @@ export default function Navbar() {
             <div className="bg-white p-2 rounded-xl w-3/4 mx-auto mb-4 border-4 border-[#FF006E]/20">
               <img src={qrModal.qrImage} alt="QR Code" className="w-full h-auto rounded-lg" />
             </div>
-            <p className="text-[10px] text-white/40 text-center mb-1 uppercase font-bold tracking-wider">O usa estra clave secreta:</p>
-            <p className="text-sm font-mono text-[#FFD60A] text-center bg-black/40 py-2 rounded-lg mb-4">{qrModal.secret}</p>
+            <p className="text-[10px] text-white/40 text-center mb-1 uppercase font-bold tracking-wider">O usa esta clave secreta:</p>
+            <p className="text-sm font-mono text-[#FFD60A] text-center bg-black/40 py-2 px-2 rounded-lg mb-4 break-all">{qrModal.secret}</p>
             
             <form onSubmit={handleConfirmApp}>
               <input
