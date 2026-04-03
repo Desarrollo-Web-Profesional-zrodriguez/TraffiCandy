@@ -11,11 +11,30 @@ import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import { Toaster } from "react-hot-toast";
+
 function App() {
   return (
     <BrowserRouter>
       {/* Fondo global con degradado tipo dulces mexicanos */}
       <div className="min-h-screen bg-gradient-to-br from-[#1a0533] via-[#3d0066] to-[#1a0533]">
+        <Toaster position="top-center" toastOptions={{
+          style: {
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(16px)',
+            color: '#fff',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '16px',
+            padding: '16px',
+            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)'
+          },
+          success: {
+            iconTheme: { primary: '#4ade80', secondary: '#1a0533' },
+          },
+          error: {
+            iconTheme: { primary: '#FF006E', secondary: '#1a0533' },
+          }
+        }} />
         <Navbar />
 
         {/* Contenido de las páginas (con padding para no quedar bajo el Navbar fijo) */}

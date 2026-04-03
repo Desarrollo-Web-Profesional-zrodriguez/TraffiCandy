@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { authService } from "../services/auth.service";
-
+import toast from "react-hot-toast";
 export default function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
@@ -14,21 +14,23 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      alert("Las contraseñas no coinciden. Intenta de nuevo.");
+      toast.error("Las contraseñas no coinciden. Intenta de nuevo.");
       return;
     }
 
     setLoading(true);
     try {
       const data = await authService.resetPassword(token, newPassword);
-      alert(data.mensaje);
-
+      
       if (data.ok) {
+        toast.success(data.mensaje);
         // Redirigir al inicio de sesión si fue exitoso
         navigate("/login");
+      } else {
+        toast.error(data.mensaje || "Error al cambiar la contraseña");
       }
     } catch (error) {
-      alert("Error al conectar con el servidor.");
+      toast.error("Error al conectar con el servidor.");
     } finally {
       setLoading(false);
     }

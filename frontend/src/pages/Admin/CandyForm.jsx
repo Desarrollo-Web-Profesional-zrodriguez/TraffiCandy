@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { dulcesService } from "../../services/dulces.service";
-
+import toast from "react-hot-toast";
 const ESTADOS_MEXICO = [
   "", "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Chiapas", "Chihuahua", "Ciudad de México", 
   "Coahuila", "Colima", "Durango", "Estado de México", "Guanajuato", "Guerrero", "Hidalgo", "Jalisco", 
@@ -52,7 +52,7 @@ export default function CandyForm() {
         }))
         .catch(err => {
           console.error(err);
-          alert("No se pudo cargar la información del dulce.");
+          toast.error("No se pudo cargar la información del dulce.");
         })
         .finally(() => setLoading(false));
     }
@@ -131,11 +131,11 @@ export default function CandyForm() {
   // Wizard Navigation
   const handleNextStep = () => {
     if (step === 1 && (!formData.nombre || !formData.descripcion_es || !formData.categoria || !formData.estadoOrigen)) {
-      alert("Por favor completa los campos principales de Identidad.");
+      toast.error("Por favor completa los campos principales de Identidad.");
       return;
     }
     if (step === 2 && formData.imagenes.length === 0) {
-      alert("Se requiere al menos una fotografía para mostrar el dulce internacionalmente.");
+      toast.error("Se requiere al menos una fotografía para mostrar el dulce internacionalmente.");
       return;
     }
     setStep(s => s + 1);
@@ -149,15 +149,15 @@ export default function CandyForm() {
     try {
       if (isEdit) {
         await dulcesService.updateDulce(id, formData);
-        alert("¡Dulce actualizado de manera exitosa! 🍬");
+        toast.success("¡Dulce actualizado de manera exitosa! 🍬");
       } else {
         await dulcesService.createDulce(formData);
-        alert("¡Nuevo dulce inyectado al catálogo exitosamente! 🚀");
+        toast.success("¡Nuevo dulce inyectado al catálogo exitosamente! 🚀");
       }
       navigate("/");
     } catch (error) {
       console.error(error);
-      alert("Error al intentar guardar el dulce en la base de datos.");
+      toast.error("Error al intentar guardar el dulce en la base de datos.");
     } finally {
       setLoading(false);
     }

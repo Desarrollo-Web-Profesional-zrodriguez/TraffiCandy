@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
+import toast from "react-hot-toast";
+import { customConfirm } from "../utils/customConfirm";
 
 const ROL_BADGE = {
   vendedor: { label: "Vendedor", cls: "bg-[#FF006E]/20 text-[#FF006E] border-[#FF006E]/40", icon: "🏪" },
@@ -24,7 +26,7 @@ export default function Navbar() {
   const [isEmail2FAEnabled, setIsEmail2FAEnabled] = useState(false);
   const [isApp2FAEnabled, setIsApp2FAEnabled] = useState(false);
   const [showSecurityMenu, setShowSecurityMenu] = useState(false);
-  const [qrModal, setQrModal] = useState({ open: false, secret: "", qrImage: "", code: "", loading: false });
+  const [qrModal, setQrModal] = useState({ open: false, secret: "", qrImage: "", code: "", backupCodes: [], loading: false });
 
   // Cargar estado inicial
   useEffect(() => {
@@ -41,30 +43,40 @@ export default function Navbar() {
   const handleToggleEmail2FA = async () => {
     try {
       const res = await authService.toggleEmail2FA();
-      if (res.ok) setIsEmail2FAEnabled(res.data.twoFactorEmail);
+      if (res.ok) {
+        setIsEmail2FAEnabled(res.data.twoFactorEmail);
+        toast.success(`2FA de correo ${res.data.twoFactorEmail ? 'activado' : 'desactivado'}`);
+      }
     } catch {
-      alert("Error al cambiar 2FA Correo.");
+      toast.error("Error al cambiar 2FA Correo.");
     }
   };
 
   const handleToggleApp2FA = async () => {
     if (isApp2FAEnabled) {
-      if (window.confirm("¿Seguro que deseas desactivar la App Autenticadora?")) {
+      const isConfirmed = await customConfirm(
+        "¿Seguro que deseas desactivar la App Autenticadora permanentemente?", 
+        "Desactivar 2FA"
+      );
+      if (isConfirmed) {
         try {
           const res = await authService.disableApp2FA();
-          if (res.ok) setIsApp2FAEnabled(false);
+          if (res.ok) {
+            setIsApp2FAEnabled(false);
+            toast.success("App Autenticadora desactivada");
+          }
         } catch {
-          alert("Error al desactivar App.");
+          toast.error("Error al desactivar App.");
         }
       }
     } else {
       try {
         const res = await authService.setupApp2FA();
         if (res.ok && res.data) {
-          setQrModal({ open: true, secret: res.data.secret, qrImage: res.data.qrImage, code: "", loading: false });
+          setQrModal({ open: true, secret: res.data.secret, qrImage: res.data.qrImage, code: "", backupCodes: res.data.backupCodes || [], loading: false });
         }
       } catch {
-        alert("Error al iniciar setup de App.");
+        toast.error("Error al iniciar setup de App.");
       }
     }
   };
@@ -76,16 +88,28 @@ export default function Navbar() {
       const res = await authService.confirmApp2FA(qrModal.code);
       if (res.ok) {
         setIsApp2FAEnabled(true);
-        setQrModal({ open: false, secret: "", qrImage: "", code: "", loading: false });
-        alert("App Autenticadora activada exitosamente.");
+        setQrModal({ open: false, secret: "", qrImage: "", code: "", backupCodes: [], loading: false });
+        toast.success("App Autenticadora activada exitosamente.");
         setShowSecurityMenu(false);
       } else {
-        alert(res.mensaje || "Código incorrecto");
+        toast.error(res.mensaje || "Código incorrecto");
         setQrModal(prev => ({ ...prev, loading: false }));
       }
     } catch {
-      alert("Error verificando código.");
+      toast.error("Error verificando código.");
       setQrModal(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleLogout = async () => {
+    const isConfirmed = await customConfirm(
+      "¿Estás seguro que deseas salir de tu cuenta?",
+      "CERRAR SESIÓN"
+    );
+    if (isConfirmed) {
+      logout();
+      setMenuOpen(false);
+      toast.success("Has cerrado sesión exitosamente.");
     }
   };
 
@@ -159,7 +183,7 @@ export default function Navbar() {
                     )}
                   </div>
 
-                  <button onClick={() => { logout(); setMenuOpen(false); }} className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-bold text-white/80 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/40 transition-all hover:scale-105 active:scale-95">Salir</button>
+                  <button onClick={handleLogout} className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-bold text-white/80 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/40 transition-all hover:scale-105 active:scale-95">Salir</button>
                 </div>
               ) : (
                 <Link to="/login" className="rounded-full bg-gradient-to-r from-[#FF006E] to-[#FB5607] px-5 py-2 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-[#FF006E]/50 active:scale-95">Empezar ahora</Link>
@@ -211,7 +235,7 @@ export default function Navbar() {
                     </div>
                   </div>
 
-                  <button onClick={() => { logout(); setMenuOpen(false); }} className="block w-full rounded-xl border border-red-500/30 bg-red-500/10 py-3 text-center text-sm font-bold text-red-400 mt-2">Cerrar Sesión</button>
+                  <button onClick={handleLogout} className="block w-full rounded-xl border border-red-500/30 bg-red-500/10 py-3 text-center text-sm font-bold text-red-400 mt-2">Cerrar Sesión</button>
                 </div>
               ) : (
                 <Link to="/login" className="block w-full rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607] py-3 text-center text-sm font-bold text-white">Empezar ahora 🚀</Link>
@@ -223,9 +247,9 @@ export default function Navbar() {
 
       {/* QR Modal para App Auth */}
       {qrModal.open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#1A1A1A] p-6 shadow-2xl relative">
-            <button onClick={() => setQrModal({ open: false, secret: "", qrImage: "", code: "", loading: false })} className="absolute top-4 right-4 text-white/40 hover:text-white">✕</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#1A1A1A] p-6 shadow-2xl relative my-8">
+            <button onClick={() => setQrModal({ open: false, secret: "", qrImage: "", code: "", backupCodes: [], loading: false })} className="absolute top-4 right-4 text-white/40 hover:text-white">✕</button>
             <h2 className="text-xl font-black text-white text-center mb-2">Configurar Autenticador</h2>
             <p className="text-xs text-white/60 text-center mb-4 leading-relaxed">
               Escanea el código QR con Google Authenticator o Authy.
@@ -236,13 +260,25 @@ export default function Navbar() {
             <p className="text-[10px] text-white/40 text-center mb-1 uppercase font-bold tracking-wider">O usa esta clave secreta:</p>
             <p className="text-sm font-mono text-[#FFD60A] text-center bg-black/40 py-2 px-2 rounded-lg mb-4 break-all">{qrModal.secret}</p>
             
+            {qrModal.backupCodes && qrModal.backupCodes.length > 0 && (
+              <div className="bg-red-500/10 border border-red-500/20 p-3 rounded-xl mb-4">
+                <h3 className="text-red-400 text-[10px] font-black uppercase mb-2">⚠️ Códigos de Respaldo</h3>
+                <p className="text-white/60 text-[10px] leading-tight mb-2">Cópialos y guárdalos en un lugar seguro. Solo se mostrarán una vez.</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {qrModal.backupCodes.map(c => (
+                    <span key={c} className="bg-black/50 text-white font-mono text-xs px-2 py-1 rounded border border-white/10 select-all">{c}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <form onSubmit={handleConfirmApp}>
               <input
                 type="text"
                 placeholder="000000"
                 maxLength={6}
                 value={qrModal.code}
-                onChange={(e) => setQrModal(prev => ({ ...prev, code: e.target.value.replace(/\D/g, '') }))}
+                onChange={(e) => setQrModal(prev => ({ ...prev, code: e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase() }))}
                 className="w-full text-center tracking-[0.5em] text-2xl font-black text-white outline-none rounded-xl border border-white/10 bg-white/5 py-3 mb-4 placeholder-white/20 focus:border-[#FF006E] focus:bg-white/10"
                 required
               />
