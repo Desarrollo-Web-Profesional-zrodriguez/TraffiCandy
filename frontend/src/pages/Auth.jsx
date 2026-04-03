@@ -18,7 +18,6 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [rol, setRol] = useState("comprador");
 
   // ── Estados del formulario de login ──
   const [loginEmail, setLoginEmail] = useState("");
@@ -39,9 +38,9 @@ export default function Auth() {
       return;
     }
     try {
-      const data = await authService.register(nombre, email, password, rol);
+      const data = await authService.register(nombre, email, password, "comprador");
       if (data.ok) {
-        alert(`¡Cuenta creada como ${rol === "vendedor" ? "Vendedor" : "Comprador"}! Ya puedes iniciar sesión.`);
+        alert(`¡Cuenta creada! Ya puedes iniciar sesión.`);
         setView("login");
       } else {
         alert(data.mensaje || "Error al registrarse.");
@@ -249,28 +248,6 @@ export default function Auth() {
                   onChange={(e) => setPassword(e.target.value)} required className={inputCls} />
                 <input type="password" placeholder="Confirmar Contraseña" value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)} required className={inputCls} />
-
-                {/* ── Selector de Rol ── */}
-                <div className="flex gap-3 mt-1">
-                  {[
-                    { value: "comprador", label: "🛍️ Comprador", desc: "Compra dulces" },
-                    { value: "vendedor", label: "🏪 Vendedor", desc: "Gestiona productos" },
-                  ].map(({ value, label, desc }) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setRol(value)}
-                      className={`flex-1 rounded-xl py-2.5 px-3 text-left transition-all border ${
-                        rol === value
-                          ? "border-[#FF006E] bg-[#FF006E]/20 text-white"
-                          : "border-white/20 bg-white/5 text-white/60 hover:border-white/40"
-                      }`}
-                    >
-                      <div className="font-bold text-sm">{label}</div>
-                      <div className="text-xs opacity-70">{desc}</div>
-                    </button>
-                  ))}
-                </div>
 
                 <button type="submit" className={btnPrimary}>Registrarme</button>
               </form>
