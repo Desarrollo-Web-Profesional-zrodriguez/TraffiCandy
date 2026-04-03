@@ -11,10 +11,10 @@ export default function ProductoDetalle() {
   const [error, setError]       = useState(null)
 
   useEffect(() => {
-    fetch(`${API_URL}/productos/${slug}`)
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => { setProducto(data); setLoading(false) })
-      .catch(() => { setError('Producto no encontrado'); setLoading(false) })
+  fetch(`${API_URL}/productos/${slug}`)
+    .then(res => res.ok ? res.json() : Promise.reject())
+    .then(res => { setProducto(res.data); setLoading(false) }) // ← res.data
+    .catch(() => { setError('Producto no encontrado'); setLoading(false) })
   }, [slug])
 
   if (loading) return (
@@ -49,16 +49,28 @@ export default function ProductoDetalle() {
 
       <article className="mt-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm overflow-hidden shadow-2xl">
         {/* Header */}
-        <div className={`bg-gradient-to-r ${themeColor} p-10 flex flex-col items-center`}>
-          <span className="text-8xl drop-shadow-lg mb-3" role="img" aria-label={producto.nombre}>
-            {producto.emoji || '🍬'}
-          </span>
-          <h1 className="text-3xl md:text-4xl font-black text-white text-center drop-shadow">
-            {producto.nombre}
-          </h1>
-          <span className="mt-3 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1 text-sm font-semibold text-white">
-            ${(producto.precioBase || 0).toFixed(2)} USD
-          </span>
+        <div className={`bg-gradient-to-r ${themeColor} flex flex-col items-center`}>
+          {producto.imagenes && producto.imagenes.length > 0 ? (
+            <div className="w-full h-64 overflow-hidden">
+              <img
+                src={producto.imagenes[0]}
+                alt={producto.nombre}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <span className="text-8xl drop-shadow-lg py-10" role="img" aria-label={producto.nombre}>
+              {producto.emoji || '🍬'}
+            </span>
+          )}
+          <div className="p-6 flex flex-col items-center">
+            <h1 className="text-3xl md:text-4xl font-black text-white text-center drop-shadow">
+              {producto.nombre}
+            </h1>
+            <span className="mt-3 rounded-full bg-white/20 backdrop-blur-sm px-4 py-1 text-sm font-semibold text-white">
+              ${(producto.precioBase || 0).toFixed(2)} USD
+            </span>
+          </div>
         </div>
 
         {/* Cuerpo */}
