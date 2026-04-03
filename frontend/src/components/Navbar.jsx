@@ -119,7 +119,7 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => setMenuOpen(false), [location.pathname]);
+  useEffect(() => { setMenuOpen(false) }, [location.pathname]);
 
   const isActive = (path) => location.pathname === path;
   const linkBase = "relative font-semibold text-sm tracking-wide transition-all duration-300 after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:rounded-full after:bg-current after:transition-all after:duration-300 hover:after:w-full";
@@ -129,7 +129,10 @@ export default function Navbar() {
   const navBg = scrolled ? "bg-[#111]/90 backdrop-blur-md border-b border-white/10 shadow-lg shadow-black/30" : "bg-transparent";
   const badge = usuario?.rol ? ROL_BADGE[usuario.rol] : null;
 
-  const vendedorLinks = isVendedor ? [{ to: "/admin/dulce/nuevo", label: "➕ Nuevo Dulce" }] : [];
+  const vendedorLinks = isVendedor ? [
+  { to: "/admin/dulces", label: "🛠️ Editar Dulce" },
+  { to: "/admin/dulce/nuevo", label: "➕ Nuevo Dulce" }
+] : [];
   const allNavLinks = [...NAV_LINKS, ...vendedorLinks];
 
   return (
