@@ -180,4 +180,71 @@ export const authService = {
       throw error;
     }
   },
+
+  toggleEmail2FA: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/toggle-email-2fa`, {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en toggleEmail2FA:", error);
+      throw error;
+    }
+  },
+
+  setupApp2FA: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/setup-app-2fa`, {
+        method: "GET",
+        headers: getAuthHeaders()
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en setupApp2FA:", error);
+      throw error;
+    }
+  },
+
+  confirmApp2FA: async (code) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/confirm-app-2fa`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ code })
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en confirmApp2FA:", error);
+      throw error;
+    }
+  },
+
+  disableApp2FA: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/disable-app-2fa`, {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en disableApp2FA:", error);
+      throw error;
+    }
+  },
+
+  sendEmail2FA: async (email, password) => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/send-2fa-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en sendEmail2FA:", error);
+      throw error;
+    }
+  }
 };
