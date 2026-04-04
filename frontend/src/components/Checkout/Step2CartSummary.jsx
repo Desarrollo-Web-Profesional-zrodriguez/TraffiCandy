@@ -21,7 +21,7 @@ export default function Step2CartSummary({ onTotalChange }) {
           id: 'promo40',
           label: 'Pack 40 Dulces Sorpresa 🎁',
           items: shuffled.slice(0, 40),
-          precio: shuffled.slice(0, 40).reduce((a, p) => a + p.precioBase, 0) * 0.75
+          precio: shuffled.slice(0, 40).reduce((a, p) => a + p.precioBase, 0) * 0.80
         },
       ])
     })
