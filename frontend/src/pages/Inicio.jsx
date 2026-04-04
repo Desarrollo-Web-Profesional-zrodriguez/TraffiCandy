@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 const CandyMap = lazy(() => import('../components/CandyMap/CandyMap'));
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCards } from "swiper/modules";
+import DulceBot from '../components/DulceBot/DulceBot'
 
 // Import Swiper styles
 import "swiper/css";
@@ -198,6 +199,7 @@ export default function Inicio() {
           <CandyMap />
         </Suspense>
       </section>
+      <DulceBot />
     </div>
   );
 }
