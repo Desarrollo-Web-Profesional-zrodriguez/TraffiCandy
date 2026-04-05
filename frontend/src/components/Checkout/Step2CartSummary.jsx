@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useCart } from '../../context/CartContext'
 import { dulcesService } from '../../services/dulces.service'
 
-export default function Step2CartSummary({ onTotalChange }) {
+export default function Step2CartSummary({ onTotalChange, onPromoChange }) {
   const { carrito, eliminarDelCarrito, total } = useCart()
   const [promos, setPromos] = useState([])
   const [promoSeleccionada, setPromoSeleccionada] = useState(null)
@@ -32,6 +32,10 @@ export default function Step2CartSummary({ onTotalChange }) {
   useEffect(() => {
     onTotalChange(totalFinal)
   }, [totalFinal])
+
+  useEffect(() => {
+    onPromoChange(promoSeleccionada)
+  }, [promoSeleccionada])
 
   return (
     <div className="space-y-6 animate-fade-in max-w-2xl mx-auto">
@@ -99,7 +103,7 @@ export default function Step2CartSummary({ onTotalChange }) {
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="flex justify-between items-center px-4 mb-2">
             <span className="text-white/70">Subtotal carrito</span>
-            <span className="text-white font-bold">${total.toFixed(2)} USD</span>
+            <span className="text-white font-bold">${total.toFixed(2)} MXN</span>
           </div>
           {promoSeleccionada && (
             <div className="flex justify-between items-center px-4 mb-2">
