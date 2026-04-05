@@ -34,25 +34,43 @@ export default function Auth() {
   // Handlers
   // ────────────────────────────────────────────────
 
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
+ const handleRegisterSubmit = async (e) => {
+  e.preventDefault()
+
+    if (!nombre.trim()) {
+      toast.error('El nombre es requerido')
+      return
+    }
+    if (password.length < 8) {
+      toast.error('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error('La contraseña debe tener al menos una mayúscula')
+      return
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error('La contraseña debe tener al menos un número')
+      return
+    }
     if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden. Intenta de nuevo.");
-      return;
+      toast.error('Las contraseñas no coinciden')
+      return
     }
-    try {
-      const data = await authService.register(nombre, email, password, "comprador");
-      if (data.ok) {
-        toast.success(`¡Cuenta creada! Ya puedes iniciar sesión.`);
-        setView("login");
-      } else {
-        toast.error(data.mensaje || "Error al registrarse.");
-      }
-    } catch (error) {
-      console.error("Error en register:", error);
-      toast.error("Error al conectar con el servidor.");
+
+  try {
+    const data = await authService.register(nombre, email, password, 'comprador')
+    if (data.ok) {
+      toast.success('¡Cuenta creada! Ya puedes iniciar sesión.')
+      setView('login')
+    } else {
+      toast.error(data.mensaje || 'Error al registrarse.')
     }
-  };
+  } catch (error) {
+    console.error('Error en register:', error)
+    toast.error('Error al conectar con el servidor.')
+  }
+}
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
