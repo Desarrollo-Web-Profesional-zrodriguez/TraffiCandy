@@ -52,6 +52,7 @@ export default function Step3Payment({ formData, totalOverride }) {
       <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 p-6 rounded-2xl border border-blue-500/20 text-center space-y-4">
         <h3 className="text-white font-bold text-xl">Pagar con PayPal</h3>
         <p className="text-white/70 text-sm">Usa tu cuenta de PayPal o Tarjeta de Crédito/Débito.</p>
+        {totalFinal > 0 ? (
         <div className="max-w-md mx-auto relative z-0">
           <PayPalScriptProvider options={{ clientId: "Af8sjYN_QIXasRJIJdofe8cuN0PL6SaXDgOd5wncvyffpdVAP9DTD4zggIo8AdGIKcV3ah0SNwM2214v", currency: "MXN" }}>
             <PayPalButtons
@@ -70,6 +71,11 @@ export default function Step3Payment({ formData, totalOverride }) {
             />
           </PayPalScriptProvider>
         </div>
+        ) : (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-6 text-center">
+            <p className="text-red-400 font-bold">⚠️ El total debe ser mayor a $0 para proceder con el pago</p>
+          </div>
+        )}
       </div>
     </div>
   )

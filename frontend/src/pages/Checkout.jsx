@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { useCart } from '../context/CartContext'
 import CheckoutProgressBar from '../components/Checkout/CheckoutProgressBar'
 import Step1Delivery from '../components/Checkout/Step1Delivery'
 import Step2CartSummary from '../components/Checkout/Step2CartSummary'
@@ -8,6 +10,8 @@ import Step3Payment from '../components/Checkout/Step3Payment'
 export default function Checkout() {
   const [step, setStep] = useState(1)
   const [totalConPromo, setTotalConPromo] = useState(0)
+  const { carrito } = useCart()
+  const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
     nombreReceptor: '',
@@ -19,15 +23,42 @@ export default function Checkout() {
     codigoPostal: ''
   })
 
+  useEffect(() => {
+    if (carrito.length === 0) {
+      toast.error('Tu carrito está vacío 🍬')
+      navigate('/catalogo')
+    }
+  }, [carrito])
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
   const handleNextStep = () => {
-    if (step === 1 && (!formData.nombreReceptor || !formData.direccion || !formData.ciudad)) {
-      toast.error('Por favor completa los detalles de envío principales.')
+    if (step === 1) {
+      if (!formData.nombreReceptor.trim()) {
+        toast.error('El nombre del receptor es requerido')
+        return
+      }
+      if (!formData.direccion.trim()) {
+        toast.error('La dirección es requerida')
+        return
+      }
+      if (!formData.ciudad.trim()) {
+        toast.error('La ciudad es requerida')
+        return
+      }
+      if (formData.codigoPostal && !/^\d{4,6}$/.test(formData.codigoPostal)) {
+        toast.error('El código postal debe tener entre 4 y 6 dígitos')
+        return
+      }
+    }
+
+    if (step === 2 && carrito.length === 0) {
+      toast.error('Agrega al menos un producto al carrito 🍬')
       return
     }
+
     setStep(s => s + 1)
   }
 
