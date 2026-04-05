@@ -6,12 +6,15 @@ import CheckoutProgressBar from '../components/Checkout/CheckoutProgressBar'
 import Step1Delivery from '../components/Checkout/Step1Delivery'
 import Step2CartSummary from '../components/Checkout/Step2CartSummary'
 import Step3Payment from '../components/Checkout/Step3Payment'
+import { useAuth } from '../context/AuthContext'
 
 export default function Checkout() {
   const [step, setStep] = useState(1)
   const [totalConPromo, setTotalConPromo] = useState(0)
   const { carrito } = useCart()
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
+  const [promoSeleccionada, setPromoSeleccionada] = useState(null)
 
   const [formData, setFormData] = useState({
     nombreReceptor: '',
@@ -29,6 +32,13 @@ export default function Checkout() {
       navigate('/catalogo')
     }
   }, [carrito])
+
+  useEffect(() => {
+  if (!isLoggedIn) {
+    toast.error('Debes iniciar sesión para comprar 🍬')
+    navigate('/login')
+  }
+}, [isLoggedIn])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -75,8 +85,8 @@ export default function Checkout() {
 
         <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
           {step === 1 && <Step1Delivery formData={formData} setFormData={setFormData} handleChange={handleChange} />}
-          {step === 2 && <Step2CartSummary onTotalChange={setTotalConPromo} />}
-          {step === 3 && <Step3Payment formData={formData} totalOverride={totalConPromo} />}
+          {step === 2 && <Step2CartSummary onTotalChange={setTotalConPromo} onPromoChange={setPromoSeleccionada} />}
+          {step === 3 && <Step3Payment formData={formData} totalOverride={totalConPromo} promoSeleccionada={promoSeleccionada} />}
 
           <div className="flex justify-between pt-8 border-t border-white/10 mt-8">
             {step > 1 ? (
