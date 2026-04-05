@@ -56,11 +56,9 @@ export default function Inicio() {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, type: "spring" }}
-          className="text-8xl mb-6 shadow-2xl rounded-full bg-white/5 p-4 backdrop-blur-md border border-white/10"
-          role="img"
-          aria-label="dulces"
+          className="mb-6 shadow-2xl rounded-full bg-white/5 p-4 backdrop-blur-md border border-white/10"
         >
-          🌮
+          <img src="/src/assets/logo1.png" alt="TraffiCandy" className="w-100 h-80 object-contain" />
         </motion.div>
 
         <motion.h1
