@@ -33,7 +33,7 @@ const generarToken = (usuario) =>
   jwt.sign(
     { id: usuario._id, email: usuario.email, rol: usuario.rol, tokenVersion: usuario.tokenVersion },
     process.env.JWT_SECRET,
-    { expiresIn: '10s' }
+    { expiresIn: '7d' }
   )
 
 // ──────────────────────────────────────────
