@@ -17,6 +17,7 @@ const COUNT_LIMITER = process.env.COUNT_LIMITER
 // ──────────────────────────────────────────
 // Limitadores de Velocidad (Fuerza Bruta)
 // ──────────────────────────────────────────
+app.set('trust proxy', 1); // para que funcione el rate limit con proxy railway
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 10, 
