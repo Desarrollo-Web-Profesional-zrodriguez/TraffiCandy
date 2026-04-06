@@ -11,7 +11,7 @@ export const dulcesService = {
    */
   getAll: async () => {
     try {
-      const response = await fetch(`${API_URL}api/productos`, {
+      const response = await fetch(`${API_URL}/api/productos`, {
         method: 'GET', // o el método que uses
         headers: {
           'Content-Type': 'application/json',
