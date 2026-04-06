@@ -18,7 +18,14 @@ const PORT = process.env.PORT || 3000
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://trafficandy.up.railway.app','https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'],
+    origin: [
+      'http://localhost:5173', 
+      'https://trafficandy.up.railway.app',
+      'https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Los métodos permitidos
+    credentials: true, // Vital si usan tokens en headers o cookies
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'] // Explicación abajo 👇
   })
 )
 app.use(express.json())
