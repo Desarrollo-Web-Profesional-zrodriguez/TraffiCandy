@@ -11,7 +11,13 @@ export const dulcesService = {
    */
   getAll: async () => {
     try {
-      const response = await fetch(`${API_URL}/api/productos`);
+      const response = await fetch(`${API_URL}/api/productos`, {
+        method: 'GET', // o el método que uses
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '69420' // ⚡ ESTA LÍNEA ES LA MAGIA
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
