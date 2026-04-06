@@ -12,6 +12,7 @@ dotenv.config()
 // Reloading dotenv
 
 const app = express()
+app.set('trust proxy', 1); // para que funcione el rate limit con proxy railway
 const PORT = process.env.PORT || 3000
 
 app.use(
