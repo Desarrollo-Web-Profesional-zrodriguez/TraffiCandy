@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import 'dotenv/config';
 import dns from 'dns';
 dns.setDefaultResultOrder('ipv4first');
 
@@ -7,8 +8,8 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.EMAIL_USER || "trafficandyconsult@gmail.com",
-    pass: process.env.EMAIL_PASS || "lmfz sfcp mbxb ikob"
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   },
   tls: {
     rejectUnauthorized: false
