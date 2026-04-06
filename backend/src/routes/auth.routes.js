@@ -19,13 +19,13 @@ const COUNT_LIMITER = process.env.COUNT_LIMITER
 // ──────────────────────────────────────────
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: COUNT_LIMITER, // 5 requests
+  max: 10, 
   message: { ok: false, mensaje: 'Demasiados intentos fallidos. Por favor, intenta de nuevo en 15 minutos.' }
 })
 
 const sendEmailLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 3, 
+  max: 10, 
   message: { ok: false, mensaje: 'Límite de envío de correos excedido. Espera un momento.' }
 })
 
@@ -33,7 +33,7 @@ const generarToken = (usuario) =>
   jwt.sign(
     { id: usuario._id, email: usuario.email, rol: usuario.rol, tokenVersion: usuario.tokenVersion },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' }
+    { expiresIn: '10s' }
   )
 
 // ──────────────────────────────────────────
