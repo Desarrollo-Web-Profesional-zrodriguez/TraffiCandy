@@ -5,6 +5,7 @@ const CandyMap = lazy(() => import('../components/CandyMap/CandyMap'));
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCards } from "swiper/modules";
 import DulceBot from '../components/DulceBot/DulceBot'
+import logoTraficandy from '../assets/logo1.png';
 
 // Import Swiper styles
 import "swiper/css";
@@ -58,7 +59,7 @@ export default function Inicio() {
           transition={{ duration: 0.8, type: "spring" }}
           className="mb-6 shadow-2xl rounded-full bg-white/5 p-4 backdrop-blur-md border border-white/10"
         >
-          <img src="/src/assets/logo1.png" alt="TraffiCandy" className="w-100 h-80 object-contain" />
+          <img src={logoTraficandy} alt="TraffiCandy" className="w-100 h-80 object-contain" />
         </motion.div>
 
         <motion.h1
