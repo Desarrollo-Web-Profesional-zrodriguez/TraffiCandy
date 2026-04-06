@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 const CandyMap = lazy(() => import('../components/CandyMap/CandyMap'));
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectCards } from "swiper/modules";
+import DulceBot from '../components/DulceBot/DulceBot'
 
 // Import Swiper styles
 import "swiper/css";
@@ -55,11 +56,9 @@ export default function Inicio() {
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, type: "spring" }}
-          className="text-8xl mb-6 shadow-2xl rounded-full bg-white/5 p-4 backdrop-blur-md border border-white/10"
-          role="img"
-          aria-label="dulces"
+          className="mb-6 shadow-2xl rounded-full bg-white/5 p-4 backdrop-blur-md border border-white/10"
         >
-          🌮
+          <img src="/src/assets/logo1.png" alt="TraffiCandy" className="w-100 h-80 object-contain" />
         </motion.div>
 
         <motion.h1
@@ -70,7 +69,7 @@ export default function Inicio() {
         >
           Bienvenido a{" "}
           <span className="bg-gradient-to-r from-[#FF006E] via-[#FB5607] to-[#FFD60A] bg-clip-text text-transparent animate-gradient-x">
-            TrafiCandy
+            TraffiCandy
           </span>
         </motion.h1>
 
@@ -198,6 +197,7 @@ export default function Inicio() {
           <CandyMap />
         </Suspense>
       </section>
+      <DulceBot />
     </div>
   );
 }

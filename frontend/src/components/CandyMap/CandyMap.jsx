@@ -1,30 +1,32 @@
 import React, { useState } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import CandyInfoPanel from './CandyInfoPanel';
-import { useMapDulces } from '../../hooks/useDulces';
+import { useMapDulces, normalizeStateName } from '../../hooks/useDulces';
 
-// Ruta al geojson/topojson de los estados de México
-const geoUrl = '/src/assets/mexico-states.json';
+// Usaremos el Objeto directamente para que Vite lo incruste en el JS (evitando Fetch/CORS en Railway)
+import geoData from '../../assets/mexico-states.json';
+import fallbackImage from '../../assets/404.png';
 
 const CandyMap = () => {
   const [selectedState, setSelectedState] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
-  const { mapData: dbSweetsData, loading } = useMapDulces();
+  const { mapData: dbSweetsData } = useMapDulces();
 
   const handleStateClick = (geo) => {
     const stateName = geo.properties.state_name;
-    const data = dbSweetsData[stateName] || [{
+    const normKey = normalizeStateName(stateName);
+    const data = dbSweetsData[normKey] || [{
       stateName: stateName,
       candyName: "Dulce típico en investigación",
       history: "Pronto se agregará la historia de esta región...",
       preparation: "Información de preparación en construcción.",
-      image: "https://images.unsplash.com/photo-1550143891-fc5ebc0f70ee?auto=format&fit=crop&q=80&w=600"
+      image: fallbackImage
     }];
     setSelectedState({ data, id: geo.rsmKey });
   };
 
   const mapProjectionConfig = {
-    scale: 1400, // Zoom out/in para encajar México (ajustar si es necesario)
+    scale: 1400, // Zoom out/in para encajar México 
     center: [-102, 24] // Coordenadas centrales aprox de México
   };
 
@@ -56,12 +58,13 @@ const CandyMap = () => {
         </div>
 
         <ComposableMap projection="geoMercator" projectionConfig={mapProjectionConfig} className="w-full h-full drop-shadow-2xl">
-          <Geographies geography={geoUrl}>
+          <Geographies geography={geoData}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const isHovered = hoveredState === geo.rsmKey;
                 const isSelected = selectedState && selectedState.id === geo.rsmKey;
-                const stateData = dbSweetsData[geo.properties.state_name];
+                const normKey = normalizeStateName(geo.properties.state_name);
+                const stateData = dbSweetsData[normKey];
                 const hasData = !!stateData;
                 const isMultiple = Array.isArray(stateData) && stateData.length > 1;
 

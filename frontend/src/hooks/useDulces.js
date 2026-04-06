@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import fallbackImage from '../assets/404.png';
 import { dulcesService } from '../services/dulces.service';
 
 /**
@@ -38,6 +39,19 @@ export const useDulces = () => {
   return { dulces, loading, error };
 };
 
+export const normalizeStateName = (str) => {
+  if (!str) return "";
+  let s = str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  
+  if (s === "ciudad de mexico" || s === "distrito federal" || s === "cdmx") return "cdmx";
+  if (s === "estado de mexico" || s === "mexico" || s === "edomex") return "edomex";
+  if (s.includes("coahuila")) return "coahuila";
+  if (s.includes("michoacan")) return "michoacan";
+  if (s.includes("veracruz")) return "veracruz";
+  
+  return s;
+};
+
 /**
  * Hook personalizado para cargar dulces y formatearlos/agruparlos por Estado
  * de la República (para CandyMap).
@@ -52,16 +66,17 @@ export const useMapDulces = () => {
       dulces.forEach((dulce) => {
         if (!dulce.estadoOrigen) return;
         
-        if (!groupedData[dulce.estadoOrigen]) {
-          groupedData[dulce.estadoOrigen] = [];
+        const normKey = normalizeStateName(dulce.estadoOrigen);
+        if (!groupedData[normKey]) {
+          groupedData[normKey] = [];
         }
         
-        groupedData[dulce.estadoOrigen].push({
+        groupedData[normKey].push({
           stateName: dulce.estadoOrigen,
           candyName: dulce.nombre,
-          history: dulce.descripcion_es,
-          preparation: `Nivel de picor: ${dulce.nivelPicor}/5. Alérgenos: ${dulce.alergenos.length ? dulce.alergenos.join(', ') : 'Ninguno'}.`,
-          image: dulce.imagenes?.length ? dulce.imagenes[0] : "https://images.unsplash.com/photo-1550143891-fc5ebc0f70ee?auto=format&fit=crop&q=80&w=600",
+          history: dulce.descripcion_es || "Información histórica no disponible aún.",
+          preparation: `Nivel de picor: ${dulce.nivelPicor || 0}/5. Alérgenos: ${(dulce.alergenos && dulce.alergenos.length) ? dulce.alergenos.join(', ') : 'Ninguno'}.`,
+          image: (dulce.imagenes && dulce.imagenes.length) ? dulce.imagenes[0] : fallbackImage,
           emoji: dulce.emoji,
           precio: dulce.precioBase
         });
