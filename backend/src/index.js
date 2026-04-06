@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 3000
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://trafficandy.up.railway.app'],
+    origin: ['http://localhost:5173', 'https://trafficandy.up.railway.app','https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'],
   })
 )
 app.use(express.json())
