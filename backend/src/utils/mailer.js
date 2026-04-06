@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer'
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || "rodriguez.mora.zahir.15@gmail.com",
-    pass: process.env.EMAIL_PASS || "eygj aqtv vjom vulm"
+    user: process.env.EMAIL_USER || "trafficandyconsult@gmail.com",
+    pass: process.env.EMAIL_PASS || "lmfz sfcp mbxb ikob"
   }
 })
 
@@ -64,7 +64,7 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
   `).join('')
 
   await transporter.sendMail({
-    from: `"TraffiCandy 🍬" <${process.env.EMAIL_USER || "rodriguez.mora.zahir.15@gmail.com"}>`,
+    from: `"TraffiCandy 🍬" <${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}>`,
     to: usuario.email,
     subject: '¡Tu orden de dulces está en camino! 🍬✈️',
     html: `
@@ -105,7 +105,7 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
         </div>
 
         <p style="color: #ffffff60; font-size: 12px; text-align: center; margin-top: 24px;">
-          Si tienes dudas contáctanos en ${process.env.EMAIL_USER || "rodriguez.mora.zahir.15@gmail.com"}
+          Si tienes dudas contáctanos en ${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}
         </p>
       </div>
     `
@@ -115,7 +115,7 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
 // ── Correo al admin tras compra ──────────────────────────────────────
 export const enviarCorreoAdmin = async (usuario, productosComprados, totalOrden, direccionEnvio) => {
   await transporter.sendMail({
-    from: `"TraffiCandy Sistema 🍬" <${process.env.EMAIL_USER || "rodriguez.mora.zahir.15@gmail.com"}>`,
+    from: `"TraffiCandy Sistema 🍬" <${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}>`,
     to: 'trafficandyconsult@gmail.com',
     subject: `🍬 Nueva orden de ${usuario.nombre || usuario.email}`,
     html: `

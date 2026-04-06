@@ -187,7 +187,7 @@ export default function Auth() {
     });
 
     toast.promise(promise, {
-      loading: 'Enviando código a tu correo...', // Simulación de algo tardado
+      loading: 'Enviando código a tu correo...',
       success: (msg) => msg,
       error: (err) => err.message
     }).finally(() => setLoading(false));
@@ -271,7 +271,7 @@ export default function Auth() {
                     onChange={(e) => setLoginEmail(e.target.value)} required className={inputCls} />
                   <div className="flex justify-end text-sm">
                     <button type="button" onClick={() => setShowForgot(false)} className="text-white/50 hover:text-white transition-colors">
-                      Volver al Login
+                      Volver al login
                     </button>
                   </div>
                   <button disabled={loading} type="submit" className={`${btnPrimary} ${loading ? "opacity-50 cursor-not-allowed hover:scale-100" : ""}`}>
