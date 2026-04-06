@@ -11,6 +11,7 @@ import CandyMap from "./components/CandyMap/CandyMap";
 import NotFound from "./components/Error/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDulces from "./pages/Admin/AdminDulces";
+import Sitemap from './pages/Sitemap';
 
 import ErrorBoundary from "./components/Error/ErrorBoundary";
 
@@ -52,6 +53,7 @@ function App() {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/mapa" element={<CandyMap />} />
+            <Route path="/sitemap" element={<Sitemap />} />
 
             {/* ── Rutas Protegidas — Solo Vendedor ───────────────────── */}
             <Route
