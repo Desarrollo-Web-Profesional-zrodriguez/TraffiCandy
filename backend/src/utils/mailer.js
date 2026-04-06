@@ -1,21 +1,24 @@
-import nodemailer from 'nodemailer'
+import nodemailer from 'nodemailer';
 import 'dotenv/config';
 import dns from 'dns';
+
+// Fix general para Node v22
 dns.setDefaultResultOrder('ipv4first');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
+  port: 587, // Usa el 587, el 465 suele ser bloqueado en la nube
+  secure: false, // Debe ser false cuando usas el 587
+  requireTLS: true,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
   tls: {
     rejectUnauthorized: false
-  }
+  },
+  family: 4 // ⚡ ESTO FALTABA: Obliga a Nodemailer a usar IPv4
 });
-
 // ── 2FA ─────────────────────────────────────────────────────────────
 export const enviarCorreo2FA = async (email, codigo) => {
   await transporter.sendMail({
