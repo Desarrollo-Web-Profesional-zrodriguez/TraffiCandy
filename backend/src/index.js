@@ -23,9 +23,9 @@ app.use(
       'https://trafficandy-frontend-production.up.railway.app',
       'https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Los métodos permitidos
-    credentials: true, // Vital si usan tokens en headers o cookies
-    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'] // Explicación abajo 👇
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning']
   })
 )
 app.use(express.json())
