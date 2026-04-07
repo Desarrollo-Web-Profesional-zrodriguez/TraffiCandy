@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Breadcrumb from '../components/Breadcrumb'
 import DulceBot from '../components/DulceBot/DulceBot'
 import { dulcesService } from '../services/dulces.service'
+import logoTraficandy from '../assets/logo1.png';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
@@ -159,7 +160,7 @@ export default function Catalogo() {
       <div className="pt-6 pb-2"><Breadcrumb /></div>
 
       <header className="mt-6 mb-10 text-center">
-        <img src="/src/assets/logo1.png" alt="TraffiCandy" className="w-100 h-52 object-contain mx-auto mb-0" />
+        <img src={logoTraficandy} alt="TraffiCandy" className="w-100 h-52 object-contain mx-auto mb-0" />
         <h1 className="text-4xl md:text-5xl font-black text-white mt-1">
           Catálogo de{' '}
           <span className="bg-gradient-to-r from-[#FF006E] to-[#FFD60A] bg-clip-text text-transparent">

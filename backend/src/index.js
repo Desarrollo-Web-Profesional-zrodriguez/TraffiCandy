@@ -7,16 +7,25 @@ import productosRoutes from './routes/productos.routes.js'
 import { notFound as notFoundResponse, serverError } from './utils/httpResponse.js'
 import ordenesRoutes from './routes/ordenes.routes.js'
 import chatRoutes from './routes/chat.routes.js'
-
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
 dotenv.config()
 // Reloading dotenv
 
 const app = express()
+app.set('trust proxy', 1); // para que funcione el rate limit con proxy railway
 const PORT = process.env.PORT || 3000
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://trafficandy.up.railway.app'],
+    origin: [
+      'http://localhost:5173', 
+      'https://trafficandy-frontend-production.up.railway.app',
+      'https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning']
   })
 )
 app.use(express.json())

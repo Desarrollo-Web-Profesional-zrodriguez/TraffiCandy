@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/auth.service";
 import toast from "react-hot-toast";
 import { customConfirm } from "../utils/customConfirm";
-
+import logoTraficandy from '../assets/logo.png';
 const ROL_BADGE = {
   vendedor: { label: "Vendedor", cls: "bg-[#FF006E]/20 text-[#FF006E] border-[#FF006E]/40", icon: "🏪" },
   comprador: { label: "Comprador", cls: "bg-[#8338EC]/20 text-[#a87eff] border-[#8338EC]/40", icon: "🛍️" },
@@ -143,7 +143,7 @@ export default function Navbar() {
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="group flex items-center gap-2 select-none">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF006E] to-[#FB5607] shadow-md transition-transform group-hover:rotate-12 group-hover:scale-110 overflow-hidden">
-                <img src="/src/assets/logo.png" alt="TraffiCandy" className="w-full h-full object-cover" />
+                <img src={logoTraficandy} alt="TraffiCandy" className="w-full h-full object-cover" />
               </span>
               <span className="text-xl font-black text-white tracking-tight">Trafi<span className="text-[#FFD60A]">Candy</span></span>
             </Link>
