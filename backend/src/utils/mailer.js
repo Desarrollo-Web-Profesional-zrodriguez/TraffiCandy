@@ -1,31 +1,42 @@
-import nodemailer from 'nodemailer';
 import 'dotenv/config';
-import dns from 'dns';
 
-// Fix general para Node v22
-dns.setDefaultResultOrder('ipv4first');
+// URL de la API de Brevo 
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587, // Usa el 587, el 465 suele ser bloqueado en la nube
-  secure: false, // Debe ser false cuando usas el 587
-  requireTLS: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  family: 4 // ⚡ ESTO FALTABA: Obliga a Nodemailer a usar IPv4
-});
+// ── FUNCIÓN BASE PARA ENVIAR CORREOS CON BREVO ──────────────────────
+const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
+  try {
+    const response = await fetch(BREVO_API_URL, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_URL
+      },
+      body: JSON.stringify({
+        sender: { 
+          name: 'TraffiCandy', 
+          email: process.env.EMAIL_USER || 'zahir.rodriguez.per@gmail.com' 
+        },
+        to: [{ email: toEmail }],
+        subject: subject,
+        htmlContent: htmlContent
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(JSON.stringify(errorData));
+    }
+    console.log(`Correo enviado a ${toEmail} vía Brevo`);
+  } catch (error) {
+    console.error(`Error en Brevo al enviar a ${toEmail}:`, error.message);
+  }
+};
+
 // ── 2FA ─────────────────────────────────────────────────────────────
 export const enviarCorreo2FA = async (email, codigo) => {
-  await transporter.sendMail({
-    from: '"TraffiCandy Seguridad" <noreply@trafficandy.com>',
-    to: email,
-    subject: 'Tu Código de Verificación 2FA - TraffiCandy',
-    html: `
+  const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
         <h2 style="color: #FF006E; text-align: center;">Código de Seguridad</h2>
         <p>Hola,</p>
@@ -39,17 +50,13 @@ export const enviarCorreo2FA = async (email, codigo) => {
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
         <p style="color: #999; font-size: 12px; text-align: center;">Si tú no solicitaste este código, puedes ignorar este correo de forma segura.</p>
       </div>
-    `
-  })
+  `;
+  await sendBrevoEmail(email, 'Tu Código de Verificación 2FA - TraffiCandy', html);
 }
 
 // ── Recuperación de contraseña ───────────────────────────────────────
 export const enviarCorreoRecuperacion = async (email, resetUrl) => {
-  await transporter.sendMail({
-    from: '"TraffiCandy Soporte" <soporte@trafficandy.com>',
-    to: email,
-    subject: 'Recuperación de Contraseña - TraffiCandy',
-    html: `
+  const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
         <h2 style="color: #FF006E;">Recuperación de contraseña</h2>
         <p>Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace para crear una nueva:</p>
@@ -59,8 +66,8 @@ export const enviarCorreoRecuperacion = async (email, resetUrl) => {
         <p style="color: #666; font-size: 14px;">Este enlace expirará en 1 hora.</p>
         <p style="color: #999; font-size: 12px;">Si no solicitaste este cambio, simplemente ignora este correo.</p>
       </div>
-    `
-  })
+  `;
+  await sendBrevoEmail(email, 'Recuperación de Contraseña - TraffiCandy', html);
 }
 
 // ── Correo al usuario tras compra ────────────────────────────────────
@@ -72,19 +79,14 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
       <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #fff; text-align: right;">$${p.precio.toFixed(2)}</td>
       <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #FF006E; text-align: right; font-weight: bold;">$${p.subtotal.toFixed(2)}</td>
     </tr>
-  `).join('')
+  `).join('');
 
-  await transporter.sendMail({
-    from: `"TraffiCandy 🍬" <${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}>`,
-    to: usuario.email,
-    subject: '¡Tu orden de dulces está en camino! 🍬✈️',
-    html: `
+  const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #1a0533; padding: 30px; border-radius: 16px;">
         <div style="text-align: center; margin-bottom: 24px;">
           <h1 style="color: #FF006E; font-size: 28px; margin: 0;">¡Gracias por tu compra! 🍬</h1>
           <p style="color: #ffffff99; margin-top: 8px;">Tu orden ha sido confirmada y está en preparación</p>
         </div>
-
         <div style="background: #2a0a3a; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
           <h2 style="color: #FFD60A; font-size: 16px; margin: 0 0 16px 0; text-transform: uppercase;">📦 Productos comprados</h2>
           <table style="width: 100%; border-collapse: collapse;">
@@ -105,7 +107,6 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
             </tfoot>
           </table>
         </div>
-
         <div style="background: #2a0a3a; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
           <h2 style="color: #FFD60A; font-size: 16px; margin: 0 0 12px 0; text-transform: uppercase;">📍 Dirección de envío</h2>
           <p style="color: #fff; margin: 4px 0;"><strong>Receptor:</strong> ${direccionEnvio.nombreReceptor}</p>
@@ -114,22 +115,22 @@ export const enviarCorreoUsuario = async (usuario, productosComprados, totalOrde
           <p style="color: #fff; margin: 4px 0;"><strong>País:</strong> ${direccionEnvio.pais}</p>
           ${direccionEnvio.referencias ? `<p style="color: #fff; margin: 4px 0;"><strong>Referencias:</strong> ${direccionEnvio.referencias}</p>` : ''}
         </div>
-
-        <p style="color: #ffffff60; font-size: 12px; text-align: center; margin-top: 24px;">
-          Si tienes dudas contáctanos en ${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}
-        </p>
       </div>
-    `
-  })
+  `;
+  await sendBrevoEmail(usuario.email, '¡Tu orden de dulces está en camino! 🍬✈️', html);
 }
 
 // ── Correo al admin tras compra ──────────────────────────────────────
 export const enviarCorreoAdmin = async (usuario, productosComprados, totalOrden, direccionEnvio) => {
-  await transporter.sendMail({
-    from: `"TraffiCandy Sistema 🍬" <${process.env.EMAIL_USER || "trafficandyconsult@gmail.com"}>`,
-    to: 'trafficandyconsult@gmail.com',
-    subject: `🍬 Nueva orden de ${usuario.nombre || usuario.email}`,
-    html: `
+  const tablaProductos = productosComprados.map(p => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #fff;">${p.emoji} ${p.nombre}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #fff; text-align: center;">${p.cantidad}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #FF006E; text-align: right; font-weight: bold;">$${p.subtotal.toFixed(2)}</td>
+    </tr>
+  `).join('');
+
+  const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #1a0533; padding: 30px; border-radius: 16px;">
         <h1 style="color: #FF006E; text-align: center;">Nueva Orden Recibida 🚨</h1>
 
@@ -150,15 +151,7 @@ export const enviarCorreoAdmin = async (usuario, productosComprados, totalOrden,
                 <th style="padding: 8px 10px; text-align: right; color: #ffffff60; font-size: 12px;">Subtotal</th>
               </tr>
             </thead>
-            <tbody>
-              ${productosComprados.map(p => `
-                <tr>
-                  <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #fff;">${p.emoji} ${p.nombre}</td>
-                  <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #fff; text-align: center;">${p.cantidad}</td>
-                  <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #FF006E; text-align: right; font-weight: bold;">$${p.subtotal.toFixed(2)}</td>
-                </tr>
-              `).join('')}
-            </tbody>
+            <tbody>${tablaProductos}</tbody>
             <tfoot>
               <tr>
                 <td colspan="2" style="padding: 16px 10px 0; color: #fff; font-weight: bold; text-align: right;">TOTAL</td>
@@ -177,6 +170,8 @@ export const enviarCorreoAdmin = async (usuario, productosComprados, totalOrden,
           ${direccionEnvio.referencias ? `<p style="color: #fff; margin: 4px 0;"><strong>Referencias:</strong> ${direccionEnvio.referencias}</p>` : ''}
         </div>
       </div>
-    `
-  })
+  `;
+  
+  const adminEmail = process.env.EMAIL_USER || 'zahir.rodriguez.per@gmail.com';
+  await sendBrevoEmail(adminEmail, `🍬 Nueva orden de ${usuario.nombre || usuario.email}`, html);
 }

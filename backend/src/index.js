@@ -20,7 +20,7 @@ app.use(
   cors({
     origin: [
       'http://localhost:5173', 
-      'https://trafficandy.up.railway.app',
+      'https://trafficandy-frontend-production.up.railway.app',
       'https://odette-unaesthetic-unphlegmatically.ngrok-free.dev'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Los métodos permitidos
