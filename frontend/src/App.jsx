@@ -12,6 +12,7 @@ import NotFound from "./components/Error/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDulces from "./pages/Admin/AdminDulces";
 import Sitemap from './pages/Sitemap';
+import Footer from './components/Footer'
 
 import ErrorBoundary from "./components/Error/ErrorBoundary";
 
@@ -86,6 +87,7 @@ function App() {
             </Routes>
           </ErrorBoundary>
         </main>
+        <Footer />
       </div>
     </BrowserRouter>
   );
