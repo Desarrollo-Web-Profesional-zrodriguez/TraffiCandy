@@ -34,6 +34,11 @@ const sendBrevoEmail = async (toEmail, subject, htmlContent) => {
   }
 };
 
+export const enviarCorreoInvitado = async (email, productosComprados, totalOrden, direccionEnvio) => {
+  const usuarioInvitado = { email, nombre: 'Cliente' }
+  await enviarCorreoUsuario(usuarioInvitado, productosComprados, totalOrden, direccionEnvio)
+}
+
 // ── 2FA ─────────────────────────────────────────────────────────────
 export const enviarCorreo2FA = async (email, codigo) => {
   const html = `
@@ -129,6 +134,7 @@ export const enviarCorreoAdmin = async (usuario, productosComprados, totalOrden,
       <td style="padding: 10px; border-bottom: 1px solid #2a0a3a; color: #FF006E; text-align: right; font-weight: bold;">$${p.subtotal.toFixed(2)}</td>
     </tr>
   `).join('');
+
 
   const html = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; background: #1a0533; padding: 30px; border-radius: 16px;">
