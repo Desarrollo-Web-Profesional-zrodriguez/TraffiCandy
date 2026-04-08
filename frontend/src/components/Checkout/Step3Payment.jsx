@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
@@ -9,16 +10,11 @@ export default function Step3Payment({ formData, totalOverride, promoSeleccionad
   const navigate = useNavigate()
   const { carrito, total, vaciarCarrito } = useCart()
   const totalFinal = totalOverride || total
+  const [emailInvitado, setEmailInvitado] = useState('')
 
   const procesarOrden = async () => {
     try {
       const token = localStorage.getItem('tc_token')
-
-      if (!token) {
-        toast.error('Debes iniciar sesión para completar tu compra')
-        navigate('/login')
-        return
-      }
 
       const itemsCarrito = carrito.map(item => ({
         productoId: item._id,
@@ -40,11 +36,12 @@ export default function Step3Payment({ formData, totalOverride, promoSeleccionad
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           items: [...itemsCarrito, ...itemsPromo],
-          direccionEnvio: formData
+          direccionEnvio: formData,
+          emailInvitado: token ? null : emailInvitado
         })
       })
 
@@ -62,6 +59,7 @@ export default function Step3Payment({ formData, totalOverride, promoSeleccionad
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-xl font-bold text-white mb-2">💳 Paso 3: Confirmación de Pago</h2>
 
+      {/* Resumen de envío */}
       <div className="bg-white/5 border border-white/10 p-6 rounded-2xl text-white space-y-3">
         <h3 className="font-bold text-[#FB5607] border-b border-white/10 pb-2 mb-4">Resumen de Envío</h3>
         <p><strong>Receptor:</strong> {formData.nombreReceptor || 'N/A'}</p>
@@ -74,6 +72,28 @@ export default function Step3Payment({ formData, totalOverride, promoSeleccionad
         </div>
       </div>
 
+      {/* Campo de correo para invitados */}
+      {!localStorage.getItem('tc_token') && (
+        <div className="bg-white/5 border border-white/10 p-5 rounded-2xl space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📧</span>
+            <h3 className="text-white font-bold text-sm">¿Quieres recibir tu recibo por correo? <span className="text-white/40 font-normal">(opcional)</span></h3>
+          </div>
+          <input
+            type="email"
+            placeholder="tucorreo@ejemplo.com"
+            value={emailInvitado}
+            onChange={e => setEmailInvitado(e.target.value)}
+            className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-white text-sm
+                       placeholder-white/30 outline-none focus:border-[#FF006E] transition-all"
+          />
+          {emailInvitado && (
+            <p className="text-white/40 text-xs">✅ Se enviará el recibo a <span className="text-[#FF006E]">{emailInvitado}</span></p>
+          )}
+        </div>
+      )}
+
+      {/* PayPal */}
       <div className="bg-gradient-to-r from-blue-900/40 to-cyan-900/40 p-6 rounded-2xl border border-blue-500/20 text-center space-y-4">
         <h3 className="text-white font-bold text-xl">Pagar con PayPal</h3>
         <p className="text-white/70 text-sm">Usa tu cuenta de PayPal o Tarjeta de Crédito/Débito.</p>

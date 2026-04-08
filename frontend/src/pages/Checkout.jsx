@@ -33,13 +33,6 @@ export default function Checkout() {
     }
   }, [carrito])
 
-  useEffect(() => {
-  if (!isLoggedIn) {
-    toast.error('Debes iniciar sesión para comprar 🍬')
-    navigate('/login')
-  }
-}, [isLoggedIn])
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }

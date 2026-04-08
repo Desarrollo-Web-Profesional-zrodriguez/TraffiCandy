@@ -5,22 +5,27 @@ import { authService } from "../services/auth.service";
 import toast from "react-hot-toast";
 import { customConfirm } from "../utils/customConfirm";
 import logoTraficandy from '../assets/logo.png';
+import { useCart } from '../context/CartContext'
+
 const ROL_BADGE = {
   vendedor: { label: "Vendedor", cls: "bg-[#FF006E]/20 text-[#FF006E] border-[#FF006E]/40", icon: "🏪" },
   comprador: { label: "Comprador", cls: "bg-[#8338EC]/20 text-[#a87eff] border-[#8338EC]/40", icon: "🛍️" },
 };
-
-const NAV_LINKS = [
-  { to: "/", label: "Inicio" },
-  { to: "/catalogo", label: "Catálogo" },
-  { to: "/checkout", label: "Checkout 🛒" },
-];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { isLoggedIn, isVendedor, usuario, logout } = useAuth();
+  const { carrito } = useCart();
+
+  const NAV_LINKS = [
+    { to: '/', label: 'Inicio' },
+    { to: '/catalogo', label: 'Catálogo' },
+    ...(carrito.length > 0
+      ? [{ to: '/checkout', label: `Checkout 🛒 (${carrito.length})` }]
+      : [])
+  ];
   
   // Estados para 2FA
   const [isEmail2FAEnabled, setIsEmail2FAEnabled] = useState(false);
