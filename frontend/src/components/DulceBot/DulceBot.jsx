@@ -1,19 +1,25 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useCart } from '../../context/CartContext'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default function DulceBot({ contextoProducto = null }) {
-  const [abierto, setAbierto]       = useState(false)
-  const [mensaje, setMensaje]       = useState('')
-  const [historial, setHistorial]   = useState([])
-  const [cargando, setCargando]     = useState(false)
-  const bottomRef                   = useRef(null)
+  const [abierto, setAbierto]     = useState(false)
+  const [mensaje, setMensaje]     = useState('')
+  const [historial, setHistorial] = useState([])
+  const [cargando, setCargando]   = useState(false)
+  const bottomRef                 = useRef(null)
+  const { carrito } = useCart()
+  const navigate = useNavigate()
+
+  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0)
+  const totalPrecio = carrito.reduce((acc, item) => acc + item.precioBase * item.cantidad, 0)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [historial, cargando])
 
-  // Resetear chat si cambia el producto
   useEffect(() => {
     setHistorial([])
   }, [contextoProducto?._id])
@@ -52,8 +58,6 @@ export default function DulceBot({ contextoProducto = null }) {
       {/* Ventana del chat */}
       {abierto && (
         <div className="w-80 sm:w-96 rounded-3xl border border-white/20 bg-[#1a0533]/95 backdrop-blur-xl shadow-2xl shadow-[#FF006E]/20 overflow-hidden flex flex-col" style={{ height: '480px' }}>
-
-          {/* Header */}
           <div className="bg-gradient-to-r from-[#FF006E] to-[#FB5607] p-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-2xl">🍬</span>
@@ -67,7 +71,6 @@ export default function DulceBot({ contextoProducto = null }) {
             <button onClick={() => setAbierto(false)} className="text-white/70 hover:text-white transition-colors text-xl">✕</button>
           </div>
 
-          {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {historial.length === 0 && (
               <div className="text-center py-6">
@@ -107,7 +110,6 @@ export default function DulceBot({ contextoProducto = null }) {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <form onSubmit={enviar} className="p-3 border-t border-white/10 flex gap-2">
             <input
               value={mensaje}
@@ -130,7 +132,26 @@ export default function DulceBot({ contextoProducto = null }) {
         </div>
       )}
 
-      {/* Burbuja flotante */}
+      {/* ✅ Burbuja del carrito — aparece solo si hay productos */}
+      {carrito.length > 0 && (
+        <button
+          onClick={() => navigate('/checkout')}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl
+                     bg-gradient-to-r from-[#FFD60A] to-[#FB5607]
+                     shadow-lg shadow-[#FFD60A]/30 hover:scale-105 active:scale-95
+                     transition-all duration-300 animate-bounce hover:animate-none
+                     border border-white/20"
+        >
+          <span className="text-xl">🛒</span>
+          <div className="text-left">
+            <p className="text-white font-black text-xs leading-none">{totalItems} producto{totalItems !== 1 ? 's' : ''}</p>
+            <p className="text-white/80 text-xs">${totalPrecio.toFixed(2)} MXN</p>
+          </div>
+          <span className="text-white font-black text-xs ml-1">→</span>
+        </button>
+      )}
+
+      {/* Burbuja del chat */}
       <button
         onClick={() => setAbierto(!abierto)}
         className="w-14 h-14 rounded-full bg-gradient-to-r from-[#FF006E] to-[#FB5607]
