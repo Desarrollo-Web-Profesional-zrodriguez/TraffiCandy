@@ -4,7 +4,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import AddToCartModal from '../components/AddToCartModal'
 import DulceBot from '../components/DulceBot/DulceBot'
 
-const API_URL = 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
 
 export default function ProductoDetalle() {
   const { slug } = useParams()
