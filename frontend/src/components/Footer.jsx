@@ -45,11 +45,6 @@ export default function Footer() {
                   Catálogo
                 </Link>
               </li>
-              <li>
-                <Link to="/mapa" className="text-white/50 hover:text-[#FF006E] text-sm transition-colors">
-                  Mapa de Dulces
-                </Link>
-              </li>
               {carrito.length > 0 && (
                 <li>
                   <Link to="/checkout" className="text-white/50 hover:text-[#FF006E] text-sm transition-colors">
