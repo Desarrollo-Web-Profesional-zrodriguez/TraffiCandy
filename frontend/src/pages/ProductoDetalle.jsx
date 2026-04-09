@@ -4,7 +4,7 @@ import Breadcrumb from '../components/Breadcrumb'
 import AddToCartModal from '../components/AddToCartModal'
 import DulceBot from '../components/DulceBot/DulceBot'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 export default function ProductoDetalle() {
   const { slug } = useParams()
@@ -14,7 +14,7 @@ export default function ProductoDetalle() {
   const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
-  fetch(`${API_URL}/productos/${slug}`)
+  fetch(`${API_URL}/api/productos/${slug}`)
     .then(res => res.ok ? res.json() : Promise.reject())
     .then(res => { setProducto(res.data); setLoading(false) }) // ← res.data
     .catch(() => { setError('Producto no encontrado'); setLoading(false) })

@@ -5,8 +5,6 @@ import DulceBot from '../components/DulceBot/DulceBot'
 import { dulcesService } from '../services/dulces.service'
 import logoTraficandy from '../assets/logo1.png';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
-
 const CATEGORIAS_CONFIG = {
   picante:     { titulo: 'Dulces Picantes',  emoji: '🌶️', color: 'from-[#FF006E] to-[#FB5607]' },
   dulce:       { titulo: 'Dulces Clásicos',  emoji: '🍬', color: 'from-[#FFD60A] to-[#FB5607]' },
