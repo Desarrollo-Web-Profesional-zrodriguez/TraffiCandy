@@ -15,7 +15,7 @@ export const dulcesService = {
         method: 'GET', // o el método que uses
         headers: {
           'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': '69420' // ⚡ ESTA LÍNEA ES LA MAGIA
+          'ngrok-skip-browser-warning': '69420'
         }
       });
       if (!response.ok) {

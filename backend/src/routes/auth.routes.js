@@ -43,6 +43,11 @@ router.post('/register', async (req, res) => {
   console.log('📩 Register hit:', req.body)
   const { nombre = '', email, password, rol = 'comprador' } = req.body
 
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return badRequest(res, 'La contraseña no cumple con los criterios de seguridad mínimos.');
+  }
+
   const rolesPermitidos = ['comprador', 'vendedor']
   if (!rolesPermitidos.includes(rol)) return badRequest(res, `Rol inválido. Usa: ${rolesPermitidos.join(' o ')}`)
 
