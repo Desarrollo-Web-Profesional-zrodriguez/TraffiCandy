@@ -23,7 +23,7 @@ export default function Footer() {
                 />
               </span>
               <span className="text-xl font-black text-white">
-                Trafi<span className="text-[#FFD60A]">Candy</span>
+                Traffi<span className="text-[#FFD60A]">Candy</span>
               </span>
             </div>
             <p className="text-white/40 text-sm leading-relaxed">

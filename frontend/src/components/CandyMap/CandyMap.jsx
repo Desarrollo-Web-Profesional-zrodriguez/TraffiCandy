@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 import CandyInfoPanel from './CandyInfoPanel';
 import { useMapDulces, normalizeStateName } from '../../hooks/useDulces';
@@ -10,10 +10,10 @@ import fallbackImage from '../../assets/404.png';
 const CandyMap = () => {
   const [selectedState, setSelectedState] = useState(null);
   const [hoveredState, setHoveredState] = useState(null);
+  const [hasAutoLocated, setHasAutoLocated] = useState(false);
   const { mapData: dbSweetsData } = useMapDulces();
 
-  const handleStateClick = (geo) => {
-    const stateName = geo.properties.state_name;
+  const selectStateByName = useCallback((stateName, geo) => {
     const normKey = normalizeStateName(stateName);
     const data = dbSweetsData[normKey] || [{
       stateName: stateName,
@@ -22,16 +22,46 @@ const CandyMap = () => {
       preparation: "Información de preparación en construcción.",
       image: fallbackImage
     }];
-    setSelectedState({ data, id: geo.rsmKey });
+    setSelectedState({ data, id: geo?.rsmKey, stateName: normKey });
+  }, [dbSweetsData]);
+
+  const handleStateClick = (geo) => {
+    selectStateByName(geo.properties.state_name, geo);
   };
 
+  // Efecto para geolocalización automática
+  useEffect(() => {
+    if (hasAutoLocated || !dbSweetsData || Object.keys(dbSweetsData).length === 0) return;
+
+    const detectLocation = async () => {
+      try {
+        // Usamos ip-api.com (HTTP simple para pruebas, en prod usar HTTPS)
+        const response = await fetch('http://ip-api.com/json');
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.countryCode === 'MX') {
+          console.log(`Usuario detectado en: ${data.regionName}, México`);
+          // Guardamos la intención de auto-ubicar para el siguiente render de Geographies
+          setHasAutoLocated(data.regionName);
+        } else {
+          setHasAutoLocated(true); // Ya lo intentamos
+        }
+      } catch (error) {
+        console.error("Error al detectar ubicación:", error);
+        setHasAutoLocated(true);
+      }
+    };
+
+    detectLocation();
+  }, [dbSweetsData, hasAutoLocated]);
+
   const mapProjectionConfig = {
-    scale: 1400, // Zoom out/in para encajar México 
-    center: [-102, 24] // Coordenadas centrales aprox de México
+    scale: 1400, 
+    center: [-102, 24] 
   };
 
   return (
-    <div className="relative w-full min-h-screen bg-gray-900 overflow-hidden flex flex-col md:flex-row items-center justify-center p-4">
+    <div className="relative w-full min-h-[90vh] bg-gray-900 overflow-hidden flex flex-col md:flex-row items-center justify-center p-4 rounded-b-[4rem] shadow-2xl">
       
       {/* Orbs decorativos de fondo */}
       <div className="absolute opacity-10 blur-3xl rounded-full bg-pink-600 w-96 h-96 top-10 left-10 pointer-events-none"></div>
@@ -59,8 +89,23 @@ const CandyMap = () => {
 
         <ComposableMap projection="geoMercator" projectionConfig={mapProjectionConfig} className="w-full h-full drop-shadow-2xl">
           <Geographies geography={geoData}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
+            {({ geographies }) => {
+              // Lógica de auto-selección si detectamos ubicación
+              if (typeof hasAutoLocated === 'string') {
+                const targetGeo = geographies.find(g => 
+                  normalizeStateName(g.properties.state_name) === normalizeStateName(hasAutoLocated)
+                );
+                if (targetGeo) {
+                  setTimeout(() => {
+                    handleStateClick(targetGeo);
+                    setHasAutoLocated(true); // Finalizar proceso
+                  }, 500);
+                } else {
+                  setHasAutoLocated(true);
+                }
+              }
+
+              return geographies.map((geo) => {
                 const isHovered = hoveredState === geo.rsmKey;
                 const isSelected = selectedState && selectedState.id === geo.rsmKey;
                 const normKey = normalizeStateName(geo.properties.state_name);
@@ -77,14 +122,14 @@ const CandyMap = () => {
                     onClick={() => handleStateClick(geo)}
                     style={{
                       default: {
-                        fill: isMultiple ? "#BE185D" : (hasData ? "#4C1D95" : "#1F2937"), // Destacar multiples vs unicos
+                        fill: isMultiple ? "#BE185D" : (hasData ? "#4C1D95" : "#1F2937"), 
                         stroke: "#6D28D9",
                         strokeWidth: 0.5,
                         outline: "none",
                         transition: "all 250ms"
                       },
                       hover: {
-                        fill: isMultiple ? "#F472B6" : "#D946EF", // Fucsia/Rosa vibrante on hover
+                        fill: isMultiple ? "#F472B6" : "#D946EF", 
                         stroke: "#FDF4FF",
                         strokeWidth: 1,
                         outline: "none",
@@ -99,13 +144,13 @@ const CandyMap = () => {
                     fillOpacity={isSelected ? 1 : isHovered ? 0.9 : 0.7}
                   />
                 );
-              })
-            }
+              });
+            }}
           </Geographies>
         </ComposableMap>
       </div>
 
-      {/* Info Panel Flotante a la Derecha o Abaixo */}
+      {/* Info Panel Flotante */}
       <div className={`w-full md:w-1/3 z-30 transition-all duration-500 transform ${selectedState ? 'translate-x-0 opacity-100' : 'translate-x-[150%] opacity-0 absolute right-0'}`}>
         {selectedState && (
           <CandyInfoPanel 
@@ -119,3 +164,4 @@ const CandyMap = () => {
 };
 
 export default CandyMap;
+

@@ -156,7 +156,7 @@ export default function Navbar() {
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#FF006E] to-[#FB5607] shadow-md transition-transform group-hover:rotate-12 group-hover:scale-110 overflow-hidden">
                 <img src={logoTraficandy} alt="TraffiCandy" className="w-full h-full object-cover" />
               </span>
-              <span className="text-xl font-black text-white tracking-tight">Trafi<span className="text-[#FFD60A]">Candy</span></span>
+              <span className="text-xl font-black text-white tracking-tight">Traffi<span className="text-[#FFD60A]">Candy</span></span>
             </Link>
 
             {/* Menú centrado absoluto - Desktop */}
