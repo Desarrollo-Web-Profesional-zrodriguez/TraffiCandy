@@ -46,7 +46,7 @@ export default function AdminDulces() {
           <p className="text-white/50 mt-1">Selecciona un dulce para editarlo</p>
         </div>
         <button
-          onClick={() => navigate('/admin/dulces/nuevo')}
+          onClick={() => navigate('/admin/dulce/nuevo')}
           className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF006E] to-[#FB5607]
                      text-white font-bold shadow-lg hover:scale-105 transition-all whitespace-nowrap"
         >
@@ -89,13 +89,15 @@ export default function AdminDulces() {
                   <img
                     src={p.imagenes[0]}
                     alt={p.nombre}
+                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
-                ) : (
+                ) : null}
+                <div className="hidden w-full h-full flex items-center justify-center">
                   <span className="text-5xl transition-transform duration-300 group-hover:scale-110">
                     {p.emoji || '🍬'}
                   </span>
-                )}
+                </div>
               </div>
 
               {/* Info */}
