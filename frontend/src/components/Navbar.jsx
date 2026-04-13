@@ -293,9 +293,9 @@ export default function Navbar() {
 
       {/* Modal QR (sin cambios) */}
       {qrModal.open && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#1A1A1A] p-6 shadow-2xl relative my-8">
-            <button onClick={() => setQrModal({ open: false, secret: "", qrImage: "", code: "", backupCodes: [], loading: false })} className="absolute top-4 right-4 text-white/40 hover:text-white">✕</button>
+        <div className="fixed inset-0 z-[100] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto pt-20">
+          <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-[#1A1A1A] p-6 shadow-2xl relative my-auto">
+            <button onClick={() => setQrModal({ open: false, secret: "", qrImage: "", code: "", backupCodes: [], loading: false })} className="absolute top-4 right-4 text-white/40 hover:text-white transition-colors z-10 p-2">✕</button>
             <h2 className="text-xl font-black text-white text-center mb-2">Configurar Autenticador</h2>
             <p className="text-xs text-white/60 text-center mb-4 leading-relaxed">Escanea el código QR con Google Authenticator o Authy.</p>
             <div className="bg-white p-2 rounded-xl w-3/4 mx-auto mb-4 border-4 border-[#FF006E]/20">
