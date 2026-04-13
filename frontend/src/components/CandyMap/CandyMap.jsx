@@ -56,19 +56,19 @@ const CandyMap = () => {
   }, [dbSweetsData, hasAutoLocated]);
 
   const mapProjectionConfig = {
-    scale: 1400, 
-    center: [-102, 24] 
+    scale: 1500, 
+    center: [-102, 23.5] 
   };
 
   return (
-    <div className="relative w-full min-h-[90vh] bg-gray-900 overflow-hidden flex flex-col md:flex-row items-center justify-center p-4 rounded-b-[4rem] shadow-2xl">
+    <div className="relative w-full min-h-[100vh] bg-gray-900 overflow-hidden flex flex-col md:flex-row items-center justify-center p-4 rounded-b-[4rem] shadow-2xl">
       
       {/* Orbs decorativos de fondo */}
       <div className="absolute opacity-10 blur-3xl rounded-full bg-pink-600 w-96 h-96 top-10 left-10 pointer-events-none"></div>
       <div className="absolute opacity-10 blur-3xl rounded-full bg-indigo-600 w-96 h-96 bottom-10 right-10 pointer-events-none"></div>
 
       {/* Contenedor del Mapa SVG */}
-      <div className="w-full md:w-2/3 h-[60vh] md:h-[80vh] z-20 transition-transform duration-700 relative">
+      <div className="w-full md:w-3/4 h-[70vh] md:h-[90vh] z-20 transition-transform duration-700 relative">
         
         {/* Leyenda del Mapa */}
         <div className="absolute bottom-0 left-0 md:bottom-4 md:left-4 z-30 bg-gray-900/80 backdrop-blur-md p-4 rounded-2xl border border-gray-700/50 shadow-xl pointer-events-none">
