@@ -1,4 +1,5 @@
 import React from "react";
+import PasswordChecklist from "./PasswordChecklist";
 
 export default function LoginView({
   view,
@@ -15,7 +16,7 @@ export default function LoginView({
   btnPrimary,
 }) {
   return (
-    <div className="w-1/3 h-full p-8">
+    <div className="w-1/3 h-full p-8 overflow-y-auto custom-scrollbar">
       <div className="mb-5 text-center">
         <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF006E] to-[#FB5607]">
           {showForgot ? "Recupera tu cuenta" : "Bienvenido de vuelta"}
@@ -77,6 +78,7 @@ export default function LoginView({
             className={inputCls}
             tabIndex={view === "login" ? 0 : -1}
           />
+          <PasswordChecklist password={loginPassword} />
           <div className="flex justify-end text-sm">
             <button
               type="button"

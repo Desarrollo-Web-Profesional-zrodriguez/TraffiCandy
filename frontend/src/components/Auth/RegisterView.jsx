@@ -1,4 +1,5 @@
 import React from "react";
+import PasswordChecklist from "./PasswordChecklist";
 
 export default function RegisterView({
   view,
@@ -11,12 +12,11 @@ export default function RegisterView({
   confirmPassword,
   setConfirmPassword,
   handleRegisterSubmit,
-  passwordCriteria,
   inputCls,
   btnPrimary,
 }) {
   return (
-    <div className="w-1/3 h-full p-8">
+    <div className="w-1/3 h-full p-8 overflow-y-auto custom-scrollbar">
       <div className="mb-4 text-center">
         <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-[#FF006E] to-[#FB5607]">
           Crea tu cuenta
@@ -54,43 +54,8 @@ export default function RegisterView({
           tabIndex={view === "registro" ? 0 : -1}
         />
 
-        {password.length > 0 && (
-          <div className="bg-black/20 p-3 rounded-xl border border-white/10 text-xs space-y-1">
-            <p className="text-white/80 font-bold mb-2">
-              Tu contraseña debe tener:
-            </p>
+        <PasswordChecklist password={password} />
 
-            <div
-              className={`flex items-center gap-2 ${passwordCriteria.length ? "text-green-400" : "text-white/50"}`}
-            >
-              <span>{passwordCriteria.length ? "✓" : "○"}</span> Mínimo 8
-              caracteres
-            </div>
-            <div
-              className={`flex items-center gap-2 ${passwordCriteria.upper ? "text-green-400" : "text-white/50"}`}
-            >
-              <span>{passwordCriteria.upper ? "✓" : "○"}</span> Una letra
-              mayúscula
-            </div>
-            <div
-              className={`flex items-center gap-2 ${passwordCriteria.lower ? "text-green-400" : "text-white/50"}`}
-            >
-              <span>{passwordCriteria.lower ? "✓" : "○"}</span> Una letra
-              minúscula
-            </div>
-            <div
-              className={`flex items-center gap-2 ${passwordCriteria.number ? "text-green-400" : "text-white/50"}`}
-            >
-              <span>{passwordCriteria.number ? "✓" : "○"}</span> Un número
-            </div>
-            <div
-              className={`flex items-center gap-2 ${passwordCriteria.special ? "text-green-400" : "text-white/50"}`}
-            >
-              <span>{passwordCriteria.special ? "✓" : "○"}</span> Un carácter
-              especial (!@#$...)
-            </div>
-          </div>
-        )}
         <input
           type="password"
           placeholder="Confirmar Contraseña"

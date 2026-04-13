@@ -213,15 +213,13 @@ export default function Auth() {
     "hover:shadow-[0_0_25px_rgba(255,0,110,0.6)] hover:scale-[1.02] active:scale-95 transition-all";
 
   // ── Validaciones en tiempo real de la contraseña ──
-  const passwordCriteria = {
-    length: password.length >= 8,
-    upper: /[A-Z]/.test(password),
-    lower: /[a-z]/.test(password),
-    number: /[0-9]/.test(password),
-    special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
-  };
-
-  const isPasswordValid = Object.values(passwordCriteria).every(Boolean);
+  // ── Validaciones para el botón de registro ──
+  const isPasswordValid = 
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*(),.?":{}|<>]/.test(password);
 
   return (
     <section className="flex flex-col items-center justify-center min-h-[80vh] px-4 overflow-hidden">
@@ -299,7 +297,6 @@ export default function Auth() {
                confirmPassword={confirmPassword}
                setConfirmPassword={setConfirmPassword}
                handleRegisterSubmit={handleRegisterSubmit}
-               passwordCriteria={passwordCriteria}
                inputCls={inputCls}
                btnPrimary={btnPrimary}
             />

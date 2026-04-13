@@ -14,7 +14,7 @@ export default function TwoFactorView({
   setTwoFactorCode,
 }) {
   return (
-    <div className="w-1/3 h-full p-8 flex flex-col justify-center relative">
+    <div className="w-1/3 h-full p-8 flex flex-col justify-center relative overflow-y-auto custom-scrollbar">
       <div className="flex justify-center mb-2 mt-4">
         <div
           className={`p-3 rounded-full border ${required2FAMethod === "app" ? "bg-green-500/20 border-green-500/30" : "bg-[#FF006E]/20 border-[#FF006E]/30"}`}
