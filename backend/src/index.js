@@ -7,8 +7,6 @@ import productosRoutes from './routes/productos.routes.js'
 import { notFound as notFoundResponse, serverError } from './utils/httpResponse.js'
 import ordenesRoutes from './routes/ordenes.routes.js'
 import chatRoutes from './routes/chat.routes.js'
-import dns from 'dns';
-dns.setDefaultResultOrder('ipv4first');
 dotenv.config()
 // Reloading dotenv
 

@@ -11,6 +11,7 @@ const usuarioSchema = new mongoose.Schema({
   nombre: { type: String, default: '' },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true },
+  suscrito: { type: Boolean, default: false },
   rol: {
     type: String,
     enum: ROLES,
