@@ -246,5 +246,21 @@ export const authService = {
       console.error("Error en sendEmail2FA:", error);
       throw error;
     }
+  },
+
+  /**
+   * Suscribir al usuario al newsletter.
+   */
+  subscribe: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/subscribe`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Error en subscribe:", error);
+      throw error;
+    }
   }
 };

@@ -44,11 +44,17 @@ export function AuthProvider({ children }) {
     setUsuario(null);
   }, []);
 
+  /** Actualiza el usuario en base a un nuevo token (sin cerrar sesión) */
+  const updateUsuario = useCallback((token) => {
+    authService.setToken(token);
+    setUsuario(authService.getUsuario());
+  }, []);
+
   const isLoggedIn = !!usuario && authService.isLoggedIn();
   const isVendedor = isLoggedIn && usuario?.rol === "vendedor";
 
   return (
-    <AuthContext.Provider value={{ usuario, isLoggedIn, isVendedor, login, logout }}>
+    <AuthContext.Provider value={{ usuario, isLoggedIn, isVendedor, login, logout, updateUsuario }}>
       {children}
     </AuthContext.Provider>
   );

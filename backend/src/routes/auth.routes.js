@@ -31,7 +31,13 @@ const sendEmailLimiter = rateLimit({
 
 const generarToken = (usuario) =>
   jwt.sign(
-    { id: usuario._id, email: usuario.email, rol: usuario.rol, tokenVersion: usuario.tokenVersion },
+    { 
+      id: usuario._id, 
+      email: usuario.email, 
+      rol: usuario.rol, 
+      suscrito: usuario.suscrito,
+      tokenVersion: usuario.tokenVersion 
+    },
     process.env.JWT_SECRET,
     { expiresIn: '7d' }
   )
@@ -59,7 +65,13 @@ router.post('/register', async (req, res) => {
     const nuevoUsuario = await Usuario.create({ nombre, email, password: hash, rol })
 
     return created(res, {
-      usuario: { id: nuevoUsuario._id, nombre: nuevoUsuario.nombre, email: nuevoUsuario.email, rol: nuevoUsuario.rol }
+      usuario: { 
+        id: nuevoUsuario._id, 
+        nombre: nuevoUsuario.nombre, 
+        email: nuevoUsuario.email, 
+        rol: nuevoUsuario.rol,
+        suscrito: nuevoUsuario.suscrito
+      }
     }, 'Usuario registrado correctamente')
   } catch (error) {
     return serverError(res, 'Error al registrar usuario', error)
@@ -110,7 +122,13 @@ router.post('/login', loginLimiter, async (req, res) => {
     const token = generarToken(usuario)
     return ok(res, {
       token,
-      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+      usuario: { 
+        id: usuario._id, 
+        nombre: usuario.nombre, 
+        email: usuario.email, 
+        rol: usuario.rol,
+        suscrito: usuario.suscrito
+      }
     }, 'Login exitoso')
   } catch (error) {
     return serverError(res, 'Error en el servidor', error)
@@ -189,7 +207,13 @@ router.post('/verify-2fa', loginLimiter, async (req, res) => {
 
     return ok(res, {
       token,
-      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol }
+      usuario: { 
+        id: usuario._id, 
+        nombre: usuario.nombre, 
+        email: usuario.email, 
+        rol: usuario.rol,
+        suscrito: usuario.suscrito
+      }
     }, 'Verificación 2FA exitosa')
   } catch (error) {
     return serverError(res, 'Error al verificar 2FA', error)
@@ -282,6 +306,35 @@ router.post('/toggle-email-2fa', verificarToken, async (req, res) => {
     return ok(res, { twoFactorEmail: usuario.twoFactorEmail }, `2FA por correo ${usuario.twoFactorEmail ? 'activado' : 'desactivado'}`)
   } catch (error) {
     return serverError(res, 'Error al cambiar estado de correo 2FA', error)
+  }
+})
+
+// ──────────────────────────────────────────
+// POST /api/auth/subscribe
+// ──────────────────────────────────────────
+router.post('/subscribe', verificarToken, async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.usuario.id)
+    if (!usuario) return badRequest(res, 'Usuario no encontrado')
+
+    usuario.suscrito = true
+    await usuario.save()
+
+    // Generamos un nuevo token para que el frontend tenga la bandera actualizada
+    const token = generarToken(usuario)
+
+    return ok(res, { 
+      token,
+      usuario: { 
+        id: usuario._id, 
+        nombre: usuario.nombre, 
+        email: usuario.email, 
+        rol: usuario.rol,
+        suscrito: usuario.suscrito
+      }
+    }, 'Te has suscrito correctamente al newsletter')
+  } catch (error) {
+    return serverError(res, 'Error al procesar suscripción', error)
   }
 })
 
