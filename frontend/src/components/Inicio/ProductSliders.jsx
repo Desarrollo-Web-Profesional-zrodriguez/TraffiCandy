@@ -44,9 +44,19 @@ export default function ProductSliders({ dulces, loading, onAddToCart }) {
                 <SwiperSlide key={dulce._id || dulce.id || idx} className="flex items-center justify-center rounded-3xl opacity-100!">
                   <div className={`w-full h-full rounded-3xl bg-gradient-to-br ${color} p-6 flex flex-col items-center justify-center text-center shadow-2xl border border-white/20 overflow-hidden relative`}>
                     {hasImage ? (
-                      <img src={dulce.imagenes[0]} alt={displayName} className="w-32 h-32 object-contain mb-4 drop-shadow-xl hover:scale-105 transition-transform duration-300" />
+                      <>
+                        <img 
+                          src={dulce.imagenes[0]} 
+                          alt={displayName} 
+                          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                          className="w-32 h-32 object-contain rounded-2xl mb-4 drop-shadow-xl hover:scale-105 transition-transform duration-300 shadow-inner" 
+                        />
+                        <div className="hidden w-32 h-32 items-center justify-center transition-transform duration-300 hover:scale-110">
+                          <span className="text-8xl drop-shadow-2xl">{emojiOrInitial || "🍬"}</span>
+                        </div>
+                      </>
                     ) : (
-                      <span className="text-8xl drop-shadow-2xl mb-4 hover:scale-110 transition-transform duration-300">{emojiOrInitial}</span>
+                      <span className="text-8xl drop-shadow-2xl mb-4 hover:scale-110 transition-transform duration-300">{emojiOrInitial || "🍬"}</span>
                     )}
                     <h3 className="text-2xl font-black text-white drop-shadow-md z-10 leading-tight">{displayName}</h3>
                     {dulce.precioBase || dulce.precio ? (
